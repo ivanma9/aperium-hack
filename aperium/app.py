@@ -5,19 +5,23 @@ import os
 import random
 import time
 from contextlib import asynccontextmanager, suppress
-from typing import Literal, Optional
+from typing import Optional
 
+import psycopg
 from dotenv import load_dotenv
-from fastapi import FastAPI, Query
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import RedirectResponse, StreamingResponse
 from websockets.asyncio.client import connect
 
-from aperium.tracking import BOUNDING_BOXES, PORTS, POSITION_TYPES, Store, normalize
-
-PortId = Literal["fujairah", "shahid_rajaee", "khor_fakkan", "jebel_ali"]
+from aperium.db import CHANNEL, Store, describe
+from aperium.db import database_url as env_database_url
+from aperium.tracking import POSITION_TYPES, bounding_boxes, normalize
 
 log = logging.getLogger("aperium")
 STREAM_URL = "wss://stream.aisstream.io/v0/stream"
+# SSE comment sent when idle so proxies keep the connection open.
+HEARTBEAT_SECONDS = 15
+SUBSCRIBER_QUEUE = 1000
 
 
 async def collect(app, key, url=STREAM_URL):
@@ -27,7 +31,8 @@ async def collect(app, key, url=STREAM_URL):
         state["status"] = "connecting"
         try:
             async with connect(url, compression="deflate", ping_interval=20, ping_timeout=20) as ws:
-                await ws.send(json.dumps({"APIKey": key, "BoundingBoxes": BOUNDING_BOXES, "FilterMessageTypes": POSITION_TYPES}))
+                await ws.send(json.dumps({"APIKey": key, "BoundingBoxes": bounding_boxes(app.state.ports),
+                                          "FilterMessageTypes": POSITION_TYPES}))
                 state["status"] = "awaiting_subscription"
                 async for raw in ws:
                     try:
@@ -49,7 +54,7 @@ async def collect(app, key, url=STREAM_URL):
                         state["invalid_messages"] += 1
                         continue
                     if position:
-                        app.state.store.save(position)
+                        await app.state.store.save(position)
                         state["status"] = "receiving"
                         state["last_error"] = None
                         state["positions_received"] += 1
@@ -70,28 +75,74 @@ async def collect(app, key, url=STREAM_URL):
         delay = min(delay * 2, 60)
 
 
-def create_app(database=None, api_key=None, stream_url=STREAM_URL):
+async def listen(app, dsn):
+    """LISTEN for position changes (trigger on `latest`) and fan them out to SSE subscribers."""
+    delay = 1
+    while True:
+        try:
+            async with await psycopg.AsyncConnection.connect(dsn, autocommit=True) as conn:
+                await conn.execute(f"LISTEN {CHANNEL}")
+                app.state.listening = True
+                delay = 1
+                async for notification in conn.notifies():
+                    item = describe(json.loads(notification.payload), time.time(),
+                                    app.state.stale_seconds, app.state.ports)
+                    if not item["inside_geofence"]:
+                        continue
+                    for queue in list(app.state.subscribers):
+                        with suppress(asyncio.QueueFull):  # a stalled client misses events, not the others
+                            queue.put_nowait(item)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            log.warning("Postgres LISTEN interrupted (%s)", type(exc).__name__)
+        app.state.listening = False
+        await asyncio.sleep(delay)
+        delay = min(delay * 2, 30)
+
+
+def sse(event, data):
+    return f"event: {event}\ndata: {json.dumps(data, separators=(',', ':'))}\n\n"
+
+
+def create_app(database_url=None, api_key=None, stream_url=STREAM_URL):
     @asynccontextmanager
     async def lifespan(app):
         load_dotenv()
         key = api_key if api_key is not None else os.getenv("AISSTREAM_API_KEY", "")
+        dsn = database_url or env_database_url()
         app.state.stale_seconds = max(1, int(os.getenv("STALE_SECONDS", "900")))
-        app.state.store = Store(database or os.getenv("DATABASE_PATH", "data/ais.sqlite3"))
+        app.state.store = await Store.open(dsn)
+        # Geofences are read once at startup; restart after editing the `ports` table.
+        app.state.ports = await app.state.store.ports()
+        app.state.subscribers = set()
+        app.state.listening = False
         app.state.stream = dict(status="missing_api_key", last_error=None, last_message_at=None,
                                 last_position_at=None, messages_received=0, positions_received=0,
                                 invalid_messages=0, discarded_messages=0, reconnects=0, started_at=time.time())
-        task = asyncio.create_task(collect(app, key, stream_url)) if key.strip() else None
+        tasks = [asyncio.create_task(listen(app, dsn))]
+        if key.strip():
+            tasks.append(asyncio.create_task(collect(app, key, stream_url)))
         try:
             yield
         finally:
-            if task:
+            for task in tasks:
                 task.cancel()
                 with suppress(asyncio.CancelledError):
                     await task
-            app.state.store.close()
+            await app.state.store.close()
 
     app = FastAPI(title="Aperium · Hormuz region AIS", lifespan=lifespan,
-                  description="Observed vessel activity around Fujairah, Shahid Rajaee, Khor Fakkan, and Jebel Ali. Approximate discovery boxes, not official anchorage boundaries or congestion scores. Times are Unix seconds in UTC.")
+                  description="Observed vessel activity in the port geofences stored in Postgres (`ports` table), "
+                              "and the monitored geographies (`geographies` table). Approximate discovery boxes, "
+                              "not official anchorage boundaries or congestion scores. Times are Unix seconds in UTC.")
+
+    def port_ids():
+        return {p["id"] for p in app.state.ports}
+
+    def check_port(port):
+        if port is not None and port not in port_ids():
+            raise HTTPException(422, f"Unknown port {port!r}; expected one of {sorted(port_ids())}")
 
     @app.get("/", include_in_schema=False)
     async def root():
@@ -102,26 +153,35 @@ def create_app(database=None, api_key=None, stream_url=STREAM_URL):
         now = time.time()
         last = app.state.stream["last_position_at"]
         age = None if last is None else round(now - last, 1)
-        return {**app.state.stream, "geofences": PORTS,
+        return {**app.state.stream,
+                "geofences": {p["id"]: {"name": p["name"], "bounds_lat_lon": p["bounds_lat_lon"]} for p in app.state.ports},
                 "seconds_since_last_position": age,
                 "data_status": "no_positions_received" if last is None else
                     ("stale" if age > app.state.stale_seconds else "recent_positions_received"),
-                "stale_seconds": app.state.stale_seconds, "now": now}
+                "stale_seconds": app.state.stale_seconds, "now": now,
+                "event_stream": "listening" if app.state.listening else "reconnecting",
+                "stream_subscribers": len(app.state.subscribers)}
+
+    @app.get("/api/geographies")
+    async def geographies():
+        """Monitored geographies (chokepoints), each with its port geofences."""
+        return await app.state.store.geographies()
 
     @app.get("/api/ports")
-    async def ports():
-        return [{"id": key, **value, "boundary_type": "approximate_discovery_box"}
-                for key, value in PORTS.items()]
+    async def ports(geography: Optional[str] = None):
+        return await app.state.store.ports(geography)
 
     @app.get("/api/vessels")
-    async def vessels(include_stale: bool = False, port: Optional[PortId] = None):
-        items = app.state.store.vessels(time.time(), app.state.stale_seconds)
+    async def vessels(include_stale: bool = False, port: Optional[str] = None):
+        check_port(port)
+        items = await app.state.store.vessels(time.time(), app.state.stale_seconds, app.state.ports)
         return [v for v in items if v["inside_geofence"] and (include_stale or not v["stale"])
                 and (port is None or port in v["ports"])]
 
     @app.get("/api/metrics")
-    async def metrics(port: Optional[PortId] = None):
-        all_vessels = app.state.store.vessels(time.time(), app.state.stale_seconds)
+    async def metrics(port: Optional[str] = None):
+        check_port(port)
+        all_vessels = await app.state.store.vessels(time.time(), app.state.stale_seconds, app.state.ports)
         def summarize(items):
             active = [v for v in items if v["inside_geofence"] and not v["stale"]]
             last_received = max((v["received_at"] for v in items), default=None)
@@ -134,14 +194,39 @@ def create_app(database=None, api_key=None, stream_url=STREAM_URL):
                     ("stale_observations_only" if items else "no_observed_vessels")}
         selected = [v for v in all_vessels if v["inside_geofence"] and (port is None or port in v["ports"])]
         return {**summarize(selected), "port": port,
-                "by_port": {key: summarize([v for v in all_vessels if key in v["ports"]])
-                            for key in PORTS if port is None or key == port},
+                "by_port": {p["id"]: summarize([v for v in all_vessels if p["id"] in v["ports"]])
+                            for p in app.state.ports if port is None or p["id"] == port},
                 "stream_status": app.state.stream["status"],
                 "note": "Observed activity only. Zero may mean no coverage. Slow/anchored vessels are not necessarily waiting for a berth."}
 
     @app.get("/api/vessels/{mmsi}/history")
     async def history(mmsi: str, limit: int = Query(100, ge=1, le=10000)):
-        return app.state.store.history(mmsi, limit)
+        return await app.state.store.history(mmsi, limit)
+
+    @app.get("/api/stream")
+    async def stream(request: Request):
+        """Server-Sent Events. `snapshot`: fresh geofence vessels on connect.
+        `vessel`: each new position (Postgres NOTIFY on `latest`), same shape as /api/vessels items."""
+        queue = asyncio.Queue(SUBSCRIBER_QUEUE)
+        app.state.subscribers.add(queue)  # subscribe before the snapshot so no update falls between them
+
+        async def events():
+            try:
+                items = await app.state.store.vessels(time.time(), app.state.stale_seconds, app.state.ports)
+                yield sse("snapshot", [v for v in items if v["inside_geofence"] and not v["stale"]])
+                while True:
+                    try:
+                        item = await asyncio.wait_for(queue.get(), HEARTBEAT_SECONDS)
+                        yield sse("vessel", item)
+                    except asyncio.TimeoutError:
+                        if await request.is_disconnected():
+                            break
+                        yield ": keep-alive\n\n"
+            finally:
+                app.state.subscribers.discard(queue)
+
+        return StreamingResponse(events(), media_type="text/event-stream",
+                                 headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"})
 
     return app
 

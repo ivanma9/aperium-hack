@@ -1,2 +1,14 @@
 .venv/
 results/tiles/
+.env
+.env.*
+!.env.example
+.venv/
+.uv-cache/
+__pycache__/
+.pytest_cache/
+data/
+*.egg-info/
+HANDOFF.md
+Main.dc.html
+Tidemark-preview.html

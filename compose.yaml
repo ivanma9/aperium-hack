@@ -1,0 +1,24 @@
+# Local Postgres for the Aperium collector. `./dev.sh` starts it and waits until healthy.
+# Credentials come from .env (gitignored), which compose reads automatically.
+# ./dev.sh generates POSTGRES_PASSWORD on first run and keeps the role's password in sync with it.
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-aperium}
+      POSTGRES_DB: ${POSTGRES_DB:-aperium}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (./dev.sh generates one)}
+    ports:
+      # Loopback only. Not 5432/5433: those are commonly taken by local or other projects' Postgres.
+      - "127.0.0.1:${APERIUM_DB_PORT:-5434}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  pgdata:

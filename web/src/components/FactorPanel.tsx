@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   fetchCustom,
@@ -98,11 +99,15 @@ export function FactorPanel() {
   const sliders = ["gasoline_share", "release_mbd", "release_scale", "sensitivity_central", "pass_through", "lag_days", "days", "baseline_transits"];
   const main = res?.regions[0];
   const cur = main?.months?.current_month;
+  const nxt = main?.months?.next_month;
+  const pumpNote = (m: { elevated_pump_days: number; days_in_month: number }) =>
+    `${Math.round(m.elevated_pump_days)} of ${m.days_in_month} days at elevated pump prices`;
   const maxAbs = Math.max(0.0001, ...(main?.contributions.map((c) => Math.abs(c.current_month_pct)) ?? []));
 
   return (
     <div className="fp">
       <section className="glass fp-card panel" aria-label="Factors">
+        <Link href="/" className="src-link">← Back to map</Link>
         <h1 className="heading">CPI factors</h1>
         {f("eia_move") && <Toggle f={f("eia_move")!} value={!!vals.eia_move} onChange={set("eia_move")} />}
         {f("release") && <Toggle f={f("release")!} value={!!vals.release} onChange={set("release")} />}
@@ -159,8 +164,17 @@ export function FactorPanel() {
                 {cur ? (
                   <>
                     <div className="row"><span>Shock, {cur.period} (central)</span><span className="mono">{pct(cur.central.energy_cpi_shock_pct)}</span></div>
-                    <div className="row"><span>Range (low – high)</span><span className="mono">{pct(cur.low.energy_cpi_shock_pct)} – {pct(cur.high.energy_cpi_shock_pct)}</span></div>
-                    <div className="row total"><span>With shock</span><span className="mono">{idx(cur.central.energy_cpi_index)}</span></div>
+                    <div className="row"><span>Range, {cur.period} (low – high)</span><span className="mono">{pct(cur.low.energy_cpi_shock_pct)} – {pct(cur.high.energy_cpi_shock_pct)}</span></div>
+                    <div className="row total"><span>With shock, {cur.period}</span><span className="mono">{idx(cur.central.energy_cpi_index)}</span></div>
+                    <div className="caption">{pumpNote(cur)}</div>
+                    {nxt && (
+                      <>
+                        <div className="row"><span>Shock, {nxt.period} (central)</span><span className="mono">{pct(nxt.central.energy_cpi_shock_pct)}</span></div>
+                        <div className="row"><span>Range, {nxt.period} (low – high)</span><span className="mono">{pct(nxt.low.energy_cpi_shock_pct)} – {pct(nxt.high.energy_cpi_shock_pct)}</span></div>
+                        <div className="row total"><span>With shock, {nxt.period}</span><span className="mono">{idx(nxt.central.energy_cpi_index)}</span></div>
+                        <div className="caption">{pumpNote(nxt)}</div>
+                      </>
+                    )}
                   </>
                 ) : <div className="caption">No baseline data for this region.</div>}
                 <div className="row"><span>Net supply loss</span><span className="mono">{res.supply.net_supply_loss_mbd} mb/d</span></div>
@@ -191,7 +205,7 @@ export function FactorPanel() {
             {res.regions.length > 1 && (
               <div className="glass fp-card">
                 <table className="fp-table">
-                  <thead><tr><th>Region</th><th>Status</th><th>Nowcast</th><th>MoM</th><th>Shock now</th><th>Shock next</th></tr></thead>
+                  <thead><tr><th>Region</th><th>Status</th><th>Nowcast</th><th>MoM</th><th>Shock {main.months?.current_month.period ?? "now"}</th><th>Shock {main.months?.next_month.period ?? "next"}</th></tr></thead>
                   <tbody>
                     {res.regions.map((r) => (
                       <tr key={r.id}>

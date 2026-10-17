@@ -9,10 +9,28 @@ include = ["aperium*"]
 name = "aperium-hack"
 version = "0.1.0"
 requires-python = ">=3.9"
-dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1", "websockets>=15,<18", "python-dotenv>=1,<2"]
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn>=0.30,<1",
+    "websockets>=15,<18",
+    "python-dotenv>=1,<2",
+    "pandas>=2.3.3",
+    "pyyaml>=6.0.3",
+    "requests>=2.32.5",
+    "numpy>=2.0.2",
+    "scipy>=1.13.1",
+    "pillow>=11.3.0",
+    "shapely>=2.0.7",
+    "matplotlib>=3.9.4",
+    "global-land-mask>=1.0.0",
+]
 
 [dependency-groups]
-dev = ["pytest>=8,<10", "httpx>=0.27,<1"]
+dev = [
+    "pytest>=8,<10",
+    "httpx>=0.27,<1",
+    "jsonschema>=4.25.1",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

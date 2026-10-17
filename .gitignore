@@ -7,3 +7,9 @@ __pycache__/
 .pytest_cache/
 data/
 *.egg-info/
+outputs/latest/
+cache/
+sentinel_cache/*
+!sentinel_cache/*.csv
+!sentinel_cache/*_params.json
+logs/

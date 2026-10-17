@@ -1,0 +1,537 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "metrics.schema.json",
+  "title": "metrics",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "as_of_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC ISO-8601, e.g. 2026-10-17T19:20:00Z"
+    },
+    "calibrated": {
+      "type": "boolean",
+      "const": false
+    },
+    "region": {
+      "type": "string",
+      "enum": [
+        "corpus_christi",
+        "hormuz"
+      ]
+    },
+    "tankers_present": {
+      "type": "integer"
+    },
+    "waiting_at_anchor": {
+      "type": "integer"
+    },
+    "avg_wait_h": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Mean hours anchored so far for tankers currently at anchor; null if none"
+    },
+    "berthed_now": {
+      "type": "integer"
+    },
+    "crossings": {
+      "type": "object",
+      "properties": {
+        "24h": {
+          "type": "object",
+          "properties": {
+            "window_h": {
+              "type": "integer"
+            },
+            "observed_h": {
+              "type": "number",
+              "description": "Hours of recorded AIS inside the window; per_day = count / observed_h * 24"
+            },
+            "in": {
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "per_day": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "per_day_ci90": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "description": "[low, high] exact Poisson 90% interval, per day; null when observed_h < 1"
+                }
+              },
+              "required": [
+                "count",
+                "per_day",
+                "per_day_ci90"
+              ],
+              "additionalProperties": false
+            },
+            "out": {
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "per_day": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "per_day_ci90": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "description": "[low, high] exact Poisson 90% interval, per day; null when observed_h < 1"
+                }
+              },
+              "required": [
+                "count",
+                "per_day",
+                "per_day_ci90"
+              ],
+              "additionalProperties": false
+            },
+            "laden_out": {
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "per_day": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "per_day_ci90": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "description": "[low, high] exact Poisson 90% interval, per day; null when observed_h < 1"
+                }
+              },
+              "required": [
+                "count",
+                "per_day",
+                "per_day_ci90"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "window_h",
+            "observed_h",
+            "in",
+            "out",
+            "laden_out"
+          ],
+          "additionalProperties": false
+        },
+        "3d": {
+          "type": "object",
+          "properties": {
+            "window_h": {
+              "type": "integer"
+            },
+            "observed_h": {
+              "type": "number",
+              "description": "Hours of recorded AIS inside the window; per_day = count / observed_h * 24"
+            },
+            "in": {
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "per_day": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "per_day_ci90": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "description": "[low, high] exact Poisson 90% interval, per day; null when observed_h < 1"
+                }
+              },
+              "required": [
+                "count",
+                "per_day",
+                "per_day_ci90"
+              ],
+              "additionalProperties": false
+            },
+            "out": {
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "per_day": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "per_day_ci90": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "description": "[low, high] exact Poisson 90% interval, per day; null when observed_h < 1"
+                }
+              },
+              "required": [
+                "count",
+                "per_day",
+                "per_day_ci90"
+              ],
+              "additionalProperties": false
+            },
+            "laden_out": {
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "per_day": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "per_day_ci90": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "description": "[low, high] exact Poisson 90% interval, per day; null when observed_h < 1"
+                }
+              },
+              "required": [
+                "count",
+                "per_day",
+                "per_day_ci90"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "window_h",
+            "observed_h",
+            "in",
+            "out",
+            "laden_out"
+          ],
+          "additionalProperties": false
+        },
+        "7d": {
+          "type": "object",
+          "properties": {
+            "window_h": {
+              "type": "integer"
+            },
+            "observed_h": {
+              "type": "number",
+              "description": "Hours of recorded AIS inside the window; per_day = count / observed_h * 24"
+            },
+            "in": {
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "per_day": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "per_day_ci90": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "description": "[low, high] exact Poisson 90% interval, per day; null when observed_h < 1"
+                }
+              },
+              "required": [
+                "count",
+                "per_day",
+                "per_day_ci90"
+              ],
+              "additionalProperties": false
+            },
+            "out": {
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "per_day": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "per_day_ci90": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "description": "[low, high] exact Poisson 90% interval, per day; null when observed_h < 1"
+                }
+              },
+              "required": [
+                "count",
+                "per_day",
+                "per_day_ci90"
+              ],
+              "additionalProperties": false
+            },
+            "laden_out": {
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "per_day": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "per_day_ci90": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "description": "[low, high] exact Poisson 90% interval, per day; null when observed_h < 1"
+                }
+              },
+              "required": [
+                "count",
+                "per_day",
+                "per_day_ci90"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "window_h",
+            "observed_h",
+            "in",
+            "out",
+            "laden_out"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "24h",
+        "3d",
+        "7d"
+      ],
+      "additionalProperties": false,
+      "description": "Gate/boundary crossings over rolling windows (no hourly numbers: counts are too low)"
+    },
+    "laden_out_daily": {
+      "type": "array",
+      "description": "Laden outbound crossings per UTC day, last 7 days, oldest first",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "observed_h": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "count",
+          "observed_h"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "est_barrels_departed_today": {
+      "type": "integer",
+      "description": "Since 00:00 UTC"
+    },
+    "coverage_status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "degraded",
+        "data_gap"
+      ],
+      "description": "ok; degraded = AIS message volume or non-tanker vessel count is down vs baseline; data_gap = they dropped together with tanker counts, so a fall in tanker traffic is treated as missing data, not a disruption"
+    },
+    "coverage": {
+      "type": "object",
+      "properties": {
+        "window_h": {
+          "type": "integer",
+          "description": "Recent window compared against the baseline"
+        },
+        "messages_per_h": {
+          "type": "number"
+        },
+        "messages_per_h_baseline": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "non_tankers": {
+          "type": "integer",
+          "description": "Distinct non-tanker vessels in the recent window"
+        },
+        "non_tankers_baseline": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "tankers": {
+          "type": "integer"
+        },
+        "tankers_baseline": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "baseline_hours": {
+          "type": "number",
+          "description": "Hours of history behind the baseline; status stays ok below the minimum"
+        }
+      },
+      "required": [
+        "window_h",
+        "messages_per_h",
+        "messages_per_h_baseline",
+        "non_tankers",
+        "non_tankers_baseline",
+        "tankers",
+        "tankers_baseline",
+        "baseline_hours"
+      ],
+      "additionalProperties": false
+    },
+    "data_coverage": {
+      "type": "object",
+      "properties": {
+        "messages_last_10m": {
+          "type": "integer"
+        },
+        "distinct_tankers": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "live",
+            "thin",
+            "no_data",
+            "replay"
+          ]
+        }
+      },
+      "required": [
+        "messages_last_10m",
+        "distinct_tankers",
+        "status"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "as_of_utc",
+    "calibrated",
+    "region",
+    "tankers_present",
+    "waiting_at_anchor",
+    "avg_wait_h",
+    "berthed_now",
+    "crossings",
+    "laden_out_daily",
+    "est_barrels_departed_today",
+    "coverage_status",
+    "coverage",
+    "data_coverage"
+  ],
+  "additionalProperties": false
+}

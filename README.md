@@ -1,4 +1,86 @@
-# Aperium: Hormuz region AIS collector
+# Aperium: live tanker monitor backend
+
+Turns live AIS (aisstream.io) and Sentinel-1 radar into tanker state, events, per-region
+metrics, and an **uncalibrated** US energy-CPI nowcast with a Strait of Hormuz disruption
+shock. Regions: Corpus Christi, TX (context) and the Strait of Hormuz (signal). No frontend
+here; the output contract for the frontend is [SCHEMA.md](SCHEMA.md), with sample files in
+`outputs/sample/`.
+
+AIS cannot measure the CPI level. The nowcast is anchored on official BLS/EIA prices and AIS
+only supplies a disruption shock; every output carries `calibrated: false` and its assumptions.
+
+## Pipeline
+
+```
+aisstream.io --> aperium.recorder --> data/raw_YYYYMMDD.jsonl --> aperium.run (aperium.state + zones.yaml)
+                                                                    |-> outputs/latest/{region}/vessels.json, events.jsonl, metrics.json
+Sentinel-1 (copernicus_demo.py -> sentinel_cache/) --> aperium.sentinel -> {region}/sentinel.json
+BLS + EIA + Hormuz gate crossings --> aperium.cpi_nowcast (config.yaml) -> cpi_nowcast.json
+outputs/latest/ --> aperium.api (read-only HTTP, port 8001)
+```
+
+## Run
+
+```sh
+uv sync
+cp .env.example .env          # add AISSTREAM_API_KEY (aisstream.io), EIA_API_KEY (eia.gov/opendata)
+uv run python -m aperium.recorder            # terminal 1: one AISstream connection, prints counts every 60 s
+uv run python -m aperium.run                 # terminal 2: tails today's raw file, writes outputs every 10 s
+uv run uvicorn aperium.api:app --port 8001   # terminal 3: read-only API, docs at /docs
+```
+
+Without live data (no key, or quiet AIS), replay synthetic or recorded data through the same engine:
+
+```sh
+uv run python -m aperium.synth --out data/synthetic_replay.jsonl --hours 6   # synthetic test data
+uv run python -m aperium.run --replay data/synthetic_replay.jsonl --speed 30  # 0 = as fast as possible
+```
+
+Other commands: `python -m aperium.zones --map outputs/zones_map.png` (zone check map),
+`python -m aperium.sentinel [--refresh]` (latest radar pass; refresh needs Copernicus creds),
+`python -m aperium.cpi_nowcast [--offline]`, `python -m aperium.contract` (regenerate `schema/`),
+`uv run pytest -q`.
+
+Only one process may hold the AISstream connection per key: do not run `aperium.recorder` and
+the legacy `aperium.app` collector (below) at the same time.
+
+Tunables: zones and region boxes in `zones.yaml`; CPI/shock parameters in `config.yaml`;
+radar detection settings in `config.py`; tanker class/laden/barrel constants at the top of
+`aperium/state.py`.
+
+## Limitations
+
+- **Not calibrated.** Every output says `calibrated: false`. There is no backtest; the shock chain's
+  parameters (`config.yaml`) are rough literature-style assumptions, not fitted values.
+- **AIS cannot measure the CPI level.** The level comes from the latest BLS print plus EIA weekly retail
+  gasoline; AIS only supplies a Hormuz disruption shock on top.
+- **Low counts.** Hormuz sees roughly 15-25 laden outbound tankers a day, so only rolling 24h / 3d / 7d
+  windows with Poisson 90 % intervals are reported. A one-day dip is usually inside the interval.
+- **Coverage, not just traffic.** aisstream.io relies on volunteer land receivers. Hormuz coverage is
+  patchy (thin on the Iranian side and mid-strait) and can drop out. A drop in message volume and
+  non-tanker vessels together with tankers is reported as `data_gap`, not a disruption. The coverage
+  baseline ignores time-of-day patterns and needs 12 h of history before it can flag anything.
+- **Baseline transit rate** (`baseline_laden_out_per_day`, 20/day) is an assumption about what the gate
+  sees under normal coverage, not a measured figure.
+- **Duration model.** The price shock depends on the size of the net supply loss only; duration decides
+  how many days of elevated pump prices (after a 1-2 week pass-through lag) land in the current vs next
+  month. Prices are assumed to revert when the disruption ends, with the same lag. Next month's baseline
+  is assumed flat.
+- **Offsets.** `bypass_capacity_mbd` (2.5, assumption: Saudi East-West and UAE Habshan-Fujairah
+  pipelines) and a strategic stock release (`strategic_release_mbd`) are subtracted from supply at risk,
+  floored at 0. Both are assumptions.
+- **Gasoline weight.** The gasoline share of energy CPI uses BLS relative importances recalled from memory
+  (`config.yaml`); verify against the published BLS table.
+- **Vessel data.** Tanker class comes from AIS length and laden status from self-reported draught. Both
+  are often missing or stale, and cargo volumes are typical loads by class, not measurements. GPS
+  spoofing near Hormuz is filtered only by implied speed (> 40 kn) and a coarse 1 km land mask.
+- **Zones are approximate**, hand-placed from charts (`zones.yaml`, map in `outputs/zones_map.png`).
+- **Radar** covers Corpus Christi only, about one Sentinel-1 pass every 12 days; Hormuz has none.
+- **Sample data is synthetic** (`aperium.synth`), tagged `status: replay`.
+
+---
+
+# Legacy: Hormuz region AIS collector
 
 Python + FastAPI + SQLite service that collects live AISstream positions in the
 Fujairah, Shahid Rajaee, Khor Fakkan, and Jebel Ali areas through one connection.

@@ -1,0 +1,873 @@
+{
+  "schema_version": "2.0.0",
+  "as_of_utc": "2026-10-17T21:07:42Z",
+  "calibrated": false,
+  "coverage_status": "ok",
+  "baseline": {
+    "cpi_energy_last": 341.573,
+    "cpi_energy_period": "2026-09",
+    "cpi_gasoline_last": 383.182,
+    "gasoline_share_of_energy": 0.5156,
+    "gasoline_share_source": "bls",
+    "retail_gasoline_this_month_usd_gal": 4.3425,
+    "retail_gasoline_last_month_usd_gal": 4.3548,
+    "retail_gasoline_mom_pct": -0.281,
+    "nowcast_period": "2026-10",
+    "nowcast_cpi_energy": 341.078,
+    "nowcast_mom_pct": -0.145,
+    "status": "ok"
+  },
+  "hormuz_live": {
+    "status": "ok",
+    "coverage_status": "ok",
+    "laden_out_per_day_24h": 9.0,
+    "laden_out_per_day_24h_ci90": [
+      4.7,
+      15.71
+    ],
+    "laden_out_per_day_3d": 12.0,
+    "baseline_laden_out_per_day": 20.0,
+    "disruption_fraction": 0.55,
+    "disruption_fraction_ci90": [
+      0.2145,
+      0.765
+    ],
+    "days_since_drop": 2,
+    "recovery_trend": "worsening",
+    "projection": {
+      "disruption_fraction": 0.55,
+      "days": 7.0,
+      "start_utc": "2026-10-16T00:00:00Z",
+      "supply_at_risk_mbd": 11.0,
+      "bypass_capacity_mbd": 2.5,
+      "net_supply_loss_mbd": 6.5,
+      "months": {
+        "current_month": {
+          "period": "2026-10",
+          "elevated_pump_days": 6.0,
+          "days_in_month": 31,
+          "baseline_cpi_energy": 341.078,
+          "low": {
+            "crude_shock_usd_bbl": 18.932,
+            "gasoline_shock_usd_gal": 0.4508,
+            "energy_cpi_shock_pct": 1.03588,
+            "energy_cpi_index": 344.611
+          },
+          "central": {
+            "crude_shock_usd_bbl": 37.864,
+            "gasoline_shock_usd_gal": 0.9015,
+            "energy_cpi_shock_pct": 2.07177,
+            "energy_cpi_index": 348.144
+          },
+          "high": {
+            "crude_shock_usd_bbl": 75.728,
+            "gasoline_shock_usd_gal": 1.8031,
+            "energy_cpi_shock_pct": 4.14353,
+            "energy_cpi_index": 355.211
+          }
+        },
+        "next_month": {
+          "period": "2026-11",
+          "elevated_pump_days": 1.0,
+          "days_in_month": 30,
+          "baseline_cpi_energy": 341.078,
+          "low": {
+            "crude_shock_usd_bbl": 18.932,
+            "gasoline_shock_usd_gal": 0.4508,
+            "energy_cpi_shock_pct": 0.1784,
+            "energy_cpi_index": 341.686
+          },
+          "central": {
+            "crude_shock_usd_bbl": 37.864,
+            "gasoline_shock_usd_gal": 0.9015,
+            "energy_cpi_shock_pct": 0.3568,
+            "energy_cpi_index": 342.295
+          },
+          "high": {
+            "crude_shock_usd_bbl": 75.728,
+            "gasoline_shock_usd_gal": 1.8031,
+            "energy_cpi_shock_pct": 0.71361,
+            "energy_cpi_index": 343.512
+          }
+        }
+      }
+    }
+  },
+  "hormuz_scenario": {
+    "disruption_fraction": 0.5,
+    "days": 30.0,
+    "start_utc": "2026-10-17T21:07:42Z",
+    "supply_at_risk_mbd": 10.0,
+    "bypass_capacity_mbd": 2.5,
+    "net_supply_loss_mbd": 5.5,
+    "months": {
+      "current_month": {
+        "period": "2026-10",
+        "elevated_pump_days": 4.1196,
+        "days_in_month": 31,
+        "baseline_cpi_energy": 341.078,
+        "low": {
+          "crude_shock_usd_bbl": 16.019,
+          "gasoline_shock_usd_gal": 0.3814,
+          "energy_cpi_shock_pct": 0.60182,
+          "energy_cpi_index": 343.131
+        },
+        "central": {
+          "crude_shock_usd_bbl": 32.039,
+          "gasoline_shock_usd_gal": 0.7628,
+          "energy_cpi_shock_pct": 1.20365,
+          "energy_cpi_index": 345.183
+        },
+        "high": {
+          "crude_shock_usd_bbl": 64.078,
+          "gasoline_shock_usd_gal": 1.5257,
+          "energy_cpi_shock_pct": 2.40729,
+          "energy_cpi_index": 349.289
+        }
+      },
+      "next_month": {
+        "period": "2026-11",
+        "elevated_pump_days": 25.8804,
+        "days_in_month": 30,
+        "baseline_cpi_energy": 341.078,
+        "low": {
+          "crude_shock_usd_bbl": 16.019,
+          "gasoline_shock_usd_gal": 0.3814,
+          "energy_cpi_shock_pct": 3.90678,
+          "energy_cpi_index": 354.403
+        },
+        "central": {
+          "crude_shock_usd_bbl": 32.039,
+          "gasoline_shock_usd_gal": 0.7628,
+          "energy_cpi_shock_pct": 7.81357,
+          "energy_cpi_index": 367.728
+        },
+        "high": {
+          "crude_shock_usd_bbl": 64.078,
+          "gasoline_shock_usd_gal": 1.5257,
+          "energy_cpi_shock_pct": 15.62714,
+          "energy_cpi_index": 394.379
+        }
+      }
+    },
+    "label": "50% Hormuz closure for one month"
+  },
+  "scenario_grid": {
+    "disruption_values": [
+      0.0,
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.9,
+      1.0
+    ],
+    "days_values": [
+      3,
+      7,
+      14,
+      30
+    ],
+    "start_utc": "2026-10-17T21:07:42Z",
+    "cells": [
+      {
+        "disruption_fraction": 0.0,
+        "days": 3,
+        "net_supply_loss_mbd": 0.0,
+        "current_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.0,
+        "days": 7,
+        "net_supply_loss_mbd": 0.0,
+        "current_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.0,
+        "days": 14,
+        "net_supply_loss_mbd": 0.0,
+        "current_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.0,
+        "days": 30,
+        "net_supply_loss_mbd": 0.0,
+        "current_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.1,
+        "days": 3,
+        "net_supply_loss_mbd": 0.0,
+        "current_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.1,
+        "days": 7,
+        "net_supply_loss_mbd": 0.0,
+        "current_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.1,
+        "days": 14,
+        "net_supply_loss_mbd": 0.0,
+        "current_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.1,
+        "days": 30,
+        "net_supply_loss_mbd": 0.0,
+        "current_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.2,
+        "days": 3,
+        "net_supply_loss_mbd": 0.0,
+        "current_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.2,
+        "days": 7,
+        "net_supply_loss_mbd": 0.0,
+        "current_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.2,
+        "days": 14,
+        "net_supply_loss_mbd": 0.0,
+        "current_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.2,
+        "days": 30,
+        "net_supply_loss_mbd": 0.0,
+        "current_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.3,
+        "days": 3,
+        "net_supply_loss_mbd": 1.5,
+        "current_month": {
+          "low": 0.11952,
+          "central": 0.23905,
+          "high": 0.4781
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.3,
+        "days": 7,
+        "net_supply_loss_mbd": 1.5,
+        "current_month": {
+          "low": 0.16413,
+          "central": 0.32827,
+          "high": 0.65653
+        },
+        "next_month": {
+          "low": 0.11858,
+          "central": 0.23717,
+          "high": 0.47433
+        }
+      },
+      {
+        "disruption_fraction": 0.3,
+        "days": 14,
+        "net_supply_loss_mbd": 1.5,
+        "current_month": {
+          "low": 0.16413,
+          "central": 0.32827,
+          "high": 0.65653
+        },
+        "next_month": {
+          "low": 0.40677,
+          "central": 0.81354,
+          "high": 1.62709
+        }
+      },
+      {
+        "disruption_fraction": 0.3,
+        "days": 30,
+        "net_supply_loss_mbd": 1.5,
+        "current_month": {
+          "low": 0.16413,
+          "central": 0.32827,
+          "high": 0.65653
+        },
+        "next_month": {
+          "low": 1.06549,
+          "central": 2.13097,
+          "high": 4.26195
+        }
+      },
+      {
+        "disruption_fraction": 0.4,
+        "days": 3,
+        "net_supply_loss_mbd": 3.5,
+        "current_month": {
+          "low": 0.27889,
+          "central": 0.55778,
+          "high": 1.11557
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.4,
+        "days": 7,
+        "net_supply_loss_mbd": 3.5,
+        "current_month": {
+          "low": 0.38298,
+          "central": 0.76596,
+          "high": 1.53191
+        },
+        "next_month": {
+          "low": 0.27669,
+          "central": 0.55339,
+          "high": 1.10678
+        }
+      },
+      {
+        "disruption_fraction": 0.4,
+        "days": 14,
+        "net_supply_loss_mbd": 3.5,
+        "current_month": {
+          "low": 0.38298,
+          "central": 0.76596,
+          "high": 1.53191
+        },
+        "next_month": {
+          "low": 0.94913,
+          "central": 1.89827,
+          "high": 3.79653
+        }
+      },
+      {
+        "disruption_fraction": 0.4,
+        "days": 30,
+        "net_supply_loss_mbd": 3.5,
+        "current_month": {
+          "low": 0.38298,
+          "central": 0.76596,
+          "high": 1.53191
+        },
+        "next_month": {
+          "low": 2.48614,
+          "central": 4.97227,
+          "high": 9.94454
+        }
+      },
+      {
+        "disruption_fraction": 0.5,
+        "days": 3,
+        "net_supply_loss_mbd": 5.5,
+        "current_month": {
+          "low": 0.43826,
+          "central": 0.87652,
+          "high": 1.75303
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.5,
+        "days": 7,
+        "net_supply_loss_mbd": 5.5,
+        "current_month": {
+          "low": 0.60182,
+          "central": 1.20365,
+          "high": 2.40729
+        },
+        "next_month": {
+          "low": 0.43481,
+          "central": 0.86961,
+          "high": 1.73922
+        }
+      },
+      {
+        "disruption_fraction": 0.5,
+        "days": 14,
+        "net_supply_loss_mbd": 5.5,
+        "current_month": {
+          "low": 0.60182,
+          "central": 1.20365,
+          "high": 2.40729
+        },
+        "next_month": {
+          "low": 1.49149,
+          "central": 2.98299,
+          "high": 5.96598
+        }
+      },
+      {
+        "disruption_fraction": 0.5,
+        "days": 30,
+        "net_supply_loss_mbd": 5.5,
+        "current_month": {
+          "low": 0.60182,
+          "central": 1.20365,
+          "high": 2.40729
+        },
+        "next_month": {
+          "low": 3.90678,
+          "central": 7.81357,
+          "high": 15.62714
+        }
+      },
+      {
+        "disruption_fraction": 0.6,
+        "days": 3,
+        "net_supply_loss_mbd": 7.5,
+        "current_month": {
+          "low": 0.59762,
+          "central": 1.19525,
+          "high": 2.3905
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.6,
+        "days": 7,
+        "net_supply_loss_mbd": 7.5,
+        "current_month": {
+          "low": 0.82067,
+          "central": 1.64134,
+          "high": 3.28267
+        },
+        "next_month": {
+          "low": 0.59292,
+          "central": 1.18583,
+          "high": 2.37167
+        }
+      },
+      {
+        "disruption_fraction": 0.6,
+        "days": 14,
+        "net_supply_loss_mbd": 7.5,
+        "current_month": {
+          "low": 0.82067,
+          "central": 1.64134,
+          "high": 3.28267
+        },
+        "next_month": {
+          "low": 2.03386,
+          "central": 4.06771,
+          "high": 8.13543
+        }
+      },
+      {
+        "disruption_fraction": 0.6,
+        "days": 30,
+        "net_supply_loss_mbd": 7.5,
+        "current_month": {
+          "low": 0.82067,
+          "central": 1.64134,
+          "high": 3.28267
+        },
+        "next_month": {
+          "low": 5.32743,
+          "central": 10.65487,
+          "high": 21.30973
+        }
+      },
+      {
+        "disruption_fraction": 0.7,
+        "days": 3,
+        "net_supply_loss_mbd": 9.5,
+        "current_month": {
+          "low": 0.75699,
+          "central": 1.51398,
+          "high": 3.02797
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.7,
+        "days": 7,
+        "net_supply_loss_mbd": 9.5,
+        "current_month": {
+          "low": 1.03951,
+          "central": 2.07902,
+          "high": 4.15805
+        },
+        "next_month": {
+          "low": 0.75103,
+          "central": 1.50206,
+          "high": 3.00411
+        }
+      },
+      {
+        "disruption_fraction": 0.7,
+        "days": 14,
+        "net_supply_loss_mbd": 9.5,
+        "current_month": {
+          "low": 1.03951,
+          "central": 2.07902,
+          "high": 4.15805
+        },
+        "next_month": {
+          "low": 2.57622,
+          "central": 5.15244,
+          "high": 10.30487
+        }
+      },
+      {
+        "disruption_fraction": 0.7,
+        "days": 30,
+        "net_supply_loss_mbd": 9.5,
+        "current_month": {
+          "low": 1.03951,
+          "central": 2.07902,
+          "high": 4.15805
+        },
+        "next_month": {
+          "low": 6.74808,
+          "central": 13.49616,
+          "high": 26.99233
+        }
+      },
+      {
+        "disruption_fraction": 0.8,
+        "days": 3,
+        "net_supply_loss_mbd": 11.5,
+        "current_month": {
+          "low": 0.91636,
+          "central": 1.83272,
+          "high": 3.66543
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.8,
+        "days": 7,
+        "net_supply_loss_mbd": 11.5,
+        "current_month": {
+          "low": 1.25836,
+          "central": 2.51671,
+          "high": 5.03343
+        },
+        "next_month": {
+          "low": 0.90914,
+          "central": 1.81828,
+          "high": 3.63656
+        }
+      },
+      {
+        "disruption_fraction": 0.8,
+        "days": 14,
+        "net_supply_loss_mbd": 11.5,
+        "current_month": {
+          "low": 1.25836,
+          "central": 2.51671,
+          "high": 5.03343
+        },
+        "next_month": {
+          "low": 3.11858,
+          "central": 6.23716,
+          "high": 12.47432
+        }
+      },
+      {
+        "disruption_fraction": 0.8,
+        "days": 30,
+        "net_supply_loss_mbd": 11.5,
+        "current_month": {
+          "low": 1.25836,
+          "central": 2.51671,
+          "high": 5.03343
+        },
+        "next_month": {
+          "low": 8.16873,
+          "central": 16.33746,
+          "high": 32.67493
+        }
+      },
+      {
+        "disruption_fraction": 0.9,
+        "days": 3,
+        "net_supply_loss_mbd": 13.5,
+        "current_month": {
+          "low": 1.07572,
+          "central": 2.15145,
+          "high": 4.3029
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 0.9,
+        "days": 7,
+        "net_supply_loss_mbd": 13.5,
+        "current_month": {
+          "low": 1.4772,
+          "central": 2.9544,
+          "high": 5.90881
+        },
+        "next_month": {
+          "low": 1.06725,
+          "central": 2.1345,
+          "high": 4.269
+        }
+      },
+      {
+        "disruption_fraction": 0.9,
+        "days": 14,
+        "net_supply_loss_mbd": 13.5,
+        "current_month": {
+          "low": 1.4772,
+          "central": 2.9544,
+          "high": 5.90881
+        },
+        "next_month": {
+          "low": 3.66094,
+          "central": 7.32188,
+          "high": 14.64377
+        }
+      },
+      {
+        "disruption_fraction": 0.9,
+        "days": 30,
+        "net_supply_loss_mbd": 13.5,
+        "current_month": {
+          "low": 1.4772,
+          "central": 2.9544,
+          "high": 5.90881
+        },
+        "next_month": {
+          "low": 9.58938,
+          "central": 19.17876,
+          "high": 38.35752
+        }
+      },
+      {
+        "disruption_fraction": 1.0,
+        "days": 3,
+        "net_supply_loss_mbd": 15.5,
+        "current_month": {
+          "low": 1.23509,
+          "central": 2.47018,
+          "high": 4.94037
+        },
+        "next_month": {
+          "low": 0.0,
+          "central": 0.0,
+          "high": 0.0
+        }
+      },
+      {
+        "disruption_fraction": 1.0,
+        "days": 7,
+        "net_supply_loss_mbd": 15.5,
+        "current_month": {
+          "low": 1.69605,
+          "central": 3.39209,
+          "high": 6.78419
+        },
+        "next_month": {
+          "low": 1.22536,
+          "central": 2.45072,
+          "high": 4.90144
+        }
+      },
+      {
+        "disruption_fraction": 1.0,
+        "days": 14,
+        "net_supply_loss_mbd": 15.5,
+        "current_month": {
+          "low": 1.69605,
+          "central": 3.39209,
+          "high": 6.78419
+        },
+        "next_month": {
+          "low": 4.2033,
+          "central": 8.40661,
+          "high": 16.81321
+        }
+      },
+      {
+        "disruption_fraction": 1.0,
+        "days": 30,
+        "net_supply_loss_mbd": 15.5,
+        "current_month": {
+          "low": 1.69605,
+          "central": 3.39209,
+          "high": 6.78419
+        },
+        "next_month": {
+          "low": 11.01003,
+          "central": 22.02006,
+          "high": 44.04012
+        }
+      }
+    ]
+  },
+  "assumptions": [
+    "AIS cannot measure the CPI level. The level is anchored on the latest official BLS print; AIS only supplies a disruption fraction.",
+    "Nowcast period is the month after the last BLS print, or the latest month with EIA weekly data if that is newer. Baseline move = gasoline share x change in the monthly average of weekly EIA retail gasoline vs the previous month; any months between the last print and the nowcast month are not captured.",
+    "Gasoline share of energy CPI = 3.3/6.4 (BLS relative importance, approximate: BLS CPI relative importance, Dec 2024 (approximate, from memory; verify)). Other energy components (electricity, natural gas, fuel oil) are held flat.",
+    "Hormuz oil flow is 20.0 mb/d. Offsets: bypass capacity 2.5 mb/d (assumption: Saudi East-West and UAE Habshan-Fujairah pipelines) and 2.0 mb/d strategic release applied at 100%; net loss = max(0, max(0, at-risk - bypass) - strategic release).",
+    "Crude price response is 3.0/6.0/12.0 USD/bbl per 1% of global supply (103.0 mb/d) lost (low/central/high); short-run demand elasticity is very low so the range is wide and not calibrated.",
+    "Gasoline shock = crude shock / 42 x pass-through 1.0; energy CPI shock at full pass-through = gasoline share x gasoline shock / retail price. Real pass-through is asymmetric (rises faster than falls).",
+    "Pump prices respond after a 10-day lag (1-2 week pump pass-through). The elevated pump window is [start + 10 d, start + 10 d + duration); prices revert when the disruption ends, with the same lag.",
+    "Price shock magnitude does not depend on duration. Duration only sets how many elevated pump days fall in the current and next calendar month; each month's energy_cpi_shock_pct = full shock pct x elevated_pump_days / days_in_month (month-average impact).",
+    "Next-month baseline_cpi_energy is assumed flat: it equals the current-month nowcast.",
+    "Observed disruption = 1 - laden outbound tanker transits per day (last 24 h) / typical 20 per day. The typical rate is uncalibrated (review said ~15-25) and the gate only sees tankers within AIS receiver coverage.",
+    "coverage_status data_gap means AIS message volume and non-tanker traffic dropped together with tanker counts, so the fall is treated as missing data rather than a disruption: no disruption estimate or projection is produced (status data_gap or no_data).",
+    "Hormuz data coverage status is 'replay': live disruption is computed from replayed, not real-time, AIS data."
+  ],
+  "sources": [
+    {
+      "name": "BLS CPI (public API v2)",
+      "series": "CUUR0000SA0E, CUUR0000SETB01",
+      "fetched_utc": "2026-10-17T20:26:55Z",
+      "status": "ok (cache)"
+    },
+    {
+      "name": "EIA weekly US regular retail gasoline",
+      "series": "EMM_EPMR_PTE_NUS_DPG",
+      "fetched_utc": "2026-10-17T20:48:45Z",
+      "status": "ok (cache)"
+    },
+    {
+      "name": "Hormuz AIS metrics",
+      "series": "hormuz/metrics.json",
+      "fetched_utc": null,
+      "status": "ok (data_coverage replay)"
+    }
+  ]
+}

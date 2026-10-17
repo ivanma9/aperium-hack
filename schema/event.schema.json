@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "event.schema.json",
+  "title": "event",
+  "type": "object",
+  "properties": {
+    "ts_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC ISO-8601, e.g. 2026-10-17T19:20:00Z"
+    },
+    "mmsi": {
+      "type": "string",
+      "pattern": "^[0-9]{9}$"
+    },
+    "name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "ANCHORED",
+        "BERTHED",
+        "DEPARTED",
+        "GATE_CROSS"
+      ]
+    },
+    "zone": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Zone id from regions.json, or null when outside all zones"
+    },
+    "direction": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "inbound",
+        "outbound",
+        null
+      ],
+      "description": "GATE_CROSS only; inbound = toward the port / into the Gulf"
+    },
+    "laden": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "est_barrels": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "Typical load by class, only for laden DEPARTED and laden outbound GATE_CROSS"
+    }
+  },
+  "required": [
+    "ts_utc",
+    "mmsi",
+    "name",
+    "type",
+    "zone",
+    "direction",
+    "laden",
+    "est_barrels"
+  ],
+  "additionalProperties": false,
+  "description": "One line of {region}/events.jsonl (append-only, one JSON object per line). No envelope."
+}

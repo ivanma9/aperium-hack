@@ -1,0 +1,23 @@
+{
+  "schema_version": "2.0.0",
+  "as_of_utc": "2026-10-17T21:07:42Z",
+  "calibrated": false,
+  "region": "corpus_christi",
+  "image": {
+    "acquired_utc": "2026-10-17T00:33:59Z",
+    "satellite": "S1D",
+    "image_path": "corpus_christi/s1_20261017T003359Z_ships.png",
+    "bbox": [
+      [
+        27.75,
+        -97.3
+      ],
+      [
+        27.9,
+        -96.95
+      ]
+    ],
+    "ship_count": 11
+  },
+  "next_pass_note": "Sentinel-1 revisits Corpus Christi about every 12 days (relative orbit 107, ascending, ~00:34 UTC)."
+}

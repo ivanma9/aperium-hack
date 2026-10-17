@@ -1,0 +1,8 @@
+{
+  "schema_version": "2.0.0",
+  "as_of_utc": "2026-10-17T21:07:42Z",
+  "calibrated": false,
+  "region": "hormuz",
+  "image": null,
+  "next_pass_note": "No radar pipeline for this region yet."
+}

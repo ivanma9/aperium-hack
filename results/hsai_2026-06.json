@@ -1,0 +1,39 @@
+{
+  "period": "2026-06",
+  "images": [
+    {"file": "hormuz_2026-06-01_ships.jpg", "cloud_pct": 0.0, "usable_fraction": 1.0,
+     "large_vessels": 1, "medium_vessels": 0, "small_vessels": 1,
+     "moving": 2, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 0,
+     "clustering": "None; one isolated large vessel in the NE part of q4.",
+     "confidence": "high",
+     "notes": "Clear, uniform water. q4 (~1110,115): one distinctly orange/red-hulled vessel, about 25 px long, with a wake trailing to the NE. That means it is heading roughly SW, which is neither NW nor SE, so it is left out of the heading counts. q2 right edge (~1495,330): a faint V-shaped wake, counted as one small moving vessel. Not counted: thin bright streaks at q1 (~1300,940) and q4 (~1370,500), possibly small boats. Quoin islets in q4 excluded."},
+    {"file": "hormuz_2026-06-11_ships.jpg", "cloud_pct": 0.02, "usable_fraction": 0.7,
+     "large_vessels": 0, "medium_vessels": 1, "small_vessels": 2,
+     "moving": 3, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 0,
+     "clustering": "None.",
+     "confidence": "low",
+     "notes": "Heavy sun glint, surface slicks and mottled texture across q1, q2 and q3 make small or dark hulls hard to see. q2: a long straight bright wake runs from the top-right corner (~1490,10) toward the SW (~1250,370). The hull sits at the tile corner, so this was counted as one medium vessel heading NE, with the size uncertain and no NW/SE heading assigned. q3: several thin V-shaped wakes near (~830,900), (~990,920) and (~700,1050); two were counted as small moving boats. The long curved line in q4 is a slick or current front, not a wake."},
+    {"file": "hormuz_2026-06-18_ships.jpg", "cloud_pct": 0.0, "usable_fraction": 1.0,
+     "large_vessels": 0, "medium_vessels": 0, "small_vessels": 0,
+     "moving": 0, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 0,
+     "clustering": "None.",
+     "confidence": "high",
+     "notes": "Clean, calm water with good visibility. No large or medium vessels anywhere. Not counted: tiny bright specks with no wake at q3 (~1230,410-435) and (~890,590), and q4 (~680,415). They could be small boats or noise."},
+    {"file": "hormuz_2026-06-21_ships.jpg", "cloud_pct": 0.12, "usable_fraction": 0.9,
+     "large_vessels": 0, "medium_vessels": 0, "small_vessels": 0,
+     "moving": 0, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 0,
+     "clustering": "None.",
+     "confidence": "medium",
+     "notes": "Many small cumulus clouds and their shadows cover q2 and the NE edge of q1 and q4. That is far more than the 0.12% cloud mask reports; visible cloud plus shadow is roughly 8-10%. No vessels were seen in the clear water. Not counted: a faint short streak in q3 (~940,870)."}
+  ],
+  "summary": {
+    "large_per_image": 0.25, "medium_per_image": 0.36,
+    "stationary_large_per_image": 0.0, "moving_share": 1.0,
+    "HSAI": 0.43, "hsai_uncertainty": 0.5,
+    "qualitative": "Shipping in the lanes box was very sparse in all four images. The month showed one large vessel (June 1) and one probable medium vessel inferred from a wake (June 11); June 18 and June 21 showed no large or medium ships. Every vessel detected was under way, and there were no stationary groups, queues or anchorages."
+  }
+}

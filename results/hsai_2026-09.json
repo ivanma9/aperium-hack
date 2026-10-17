@@ -1,0 +1,42 @@
+{
+  "period": "2026-09",
+  "images": [
+    {"file": "hormuz_2026-09-04_ships.jpg", "cloud_pct": 0.0, "usable_fraction": 1.0,
+     "large_vessels": 0, "medium_vessels": 2, "small_vessels": 1,
+     "moving": 3, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 2,
+     "clustering": "None. The two medium vessels are well separated, both in the western half near the Quoin islets.",
+     "confidence": "medium",
+     "notes": "Medium vessel 1 is green-hulled at the bottom-left of q4. Its very long wake runs back NW through q3 and q1, so it is moving SE. Medium vessel 2 is red-hulled, just south of the southern Quoin islet (q4), with a wake trailing NW, so it is moving SE. There is 1 small craft with a short trail in lower q1. A dark speck with a bright pixel at the top-right of q2 could be a small boat or noise and was not counted. A dark elongated smear in q3 is probably a slick and was not counted. moving/stationary include small craft."},
+    {"file": "hormuz_2026-09-09_ships.jpg", "cloud_pct": 0.0, "usable_fraction": 0.95,
+     "large_vessels": 0, "medium_vessels": 1, "small_vessels": 5,
+     "moving": 5, "stationary": 1,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 0,
+     "clustering": "Several small fast craft are scattered around the Quoin islets in q4, two of them close together east of the southern islet. No large-ship grouping.",
+     "confidence": "medium",
+     "notes": "The only medium vessel is the red-hulled ship at almost the same spot south of the southern Quoin islet as on 09-04. It has only a very short dark trail, so it is classed stationary. All 5 small craft are in q4 and show short white wake streaks. Faint white marks at the bottom edge of q3 might be another small boat and were not counted. q3 has extensive surface slicks and darker haze-like water on its left side, which lowers usable area slightly. Detector-boundary lines appear in q2 and q4."},
+    {"file": "hormuz_2026-09-19_ships.jpg", "cloud_pct": 0.06, "usable_fraction": 0.93,
+     "large_vessels": 0, "medium_vessels": 1, "small_vessels": 5,
+     "moving": 6, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 1,
+     "clustering": "A loose group of 3 small craft in q2 and 2 in q3, all in open water mid-image. No large-ship clustering.",
+     "confidence": "medium",
+     "notes": "Small cumulus clouds and their shadows sit along the eastern edge of q2 and q4, covering more of the area than the 0.06% mask suggests (about 5-7%). The only medium vessel is the red-hulled ship again just south of the southern Quoin islet. It has a curved wake trailing NW, so it is moving SE. Small dark marks at the top-left of q3 are probably slicks and were not counted. The Musandam coast is not visible at the bottom of q4 in this scene."},
+    {"file": "hormuz_2026-09-29_ships.jpg", "cloud_pct": 0.0, "usable_fraction": 0.98,
+     "large_vessels": 0, "medium_vessels": 1, "small_vessels": 9,
+     "moving": 9, "stationary": 1,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 0,
+     "clustering": "Small craft are dispersed across q1, q2, q3 and q4 with no tight grouping. No large-ship clustering.",
+     "confidence": "medium",
+     "notes": "The only medium vessel is the red-hulled ship again at about the same position south of the southern Quoin islet. It has only a short dark trail, so it is classed stationary. Its recurrence on all four dates suggests a vessel loitering or anchored there. The 9 small craft show short white wake streaks: 2 in q1, 2 in q2, 4 in q3 and 1 in q4. Two further faint marks at the bottom-left of q4 were not counted. q1 and q3 contain large dark surface slicks and shoal-like patches, which are not ships."}
+  ],
+  "summary": {
+    "large_per_image": 0.0,
+    "medium_per_image": 1.29,
+    "stationary_large_per_image": 0.0,
+    "moving_share": 0.6,
+    "HSAI": 0.64,
+    "hsai_uncertainty": 0.4,
+    "qualitative": "Commercial traffic was almost absent: none of the four scenes shows a vessel of 150 m or more. Medium vessels numbered 1-2 per scene, and the main one was the same red-hulled ship sitting south of the southern Quoin islet on every date. Most of what is visible is small fast craft (1-9 per scene, rising towards month end). Where direction could be read, the medium vessels were heading SE (outbound), and there were no queues or anchorage clusters of large ships."
+  }
+}

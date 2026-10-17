@@ -1,0 +1,25 @@
+{
+  "period": "2026-10",
+  "images": [
+    {"file": "hormuz_2026-10-04_ships.jpg", "cloud_pct": 0.6, "usable_fraction": 0.96,
+     "large_vessels": 0, "medium_vessels": 1, "small_vessels": 17,
+     "moving": 17, "stationary": 1,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 0,
+     "clustering": "Small fast craft travel in loose groups on a SW-to-NE track. q2 has a tight pack of about 5 boats with parallel wakes near (950,700), with single boats strung out behind it to the SW. q3 has a second string of about 8 boats in the lower right (1060-1370, 775-1115). There are no anchorage or queue clusters of large ships.",
+     "confidence": "medium",
+     "notes": "There are no large commercial hulls anywhere in the scene. The only medium-sized candidate is an elongated reddish/orange object of about 10-15 px with no wake in q4 at about (533,787), south-east of the smallest Quoin islet. It is counted as a stationary medium vessel, but its odd colour makes it uncertain. A faint 1-3 px speck at q4 (553,715) next to the islet edge was not counted. About 17 small boats (2-5 px) all have clear linear wakes trailing SW, so they are moving roughly NE; they are not used for the heading counts because they are small vessels. Broken cumulus with shadow in the top-left of q1 covers about 10% of that tile. There is a faint detector boundary line in q1, q2 and q3."},
+    {"file": "hormuz_2026-10-09_ships.jpg", "cloud_pct": 0.03, "usable_fraction": 0.97,
+     "large_vessels": 0, "medium_vessels": 0, "small_vessels": 2,
+     "moving": 2, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 0,
+     "clustering": "None. The scene is essentially empty.",
+     "confidence": "medium",
+     "notes": "There are no large or medium vessels anywhere in the four tiles. A pair of tiny bright marks with short streaks at the bottom-right corner of q4, at about (1320-1345, 1195), is counted as 2 small moving boats, but this is uncertain. An isolated single bright pixel in q3 at about (982,1103) was not counted. A patch of bright speckle/cloud in the left-centre of q1 covers about 8% of that tile, and its unclear origin may be glint or small cloud. The rest of the image is clean water with visible wind streaks and detector boundary lines."}
+  ],
+  "summary": {
+    "large_per_image": 0.0, "medium_per_image": 0.52,
+    "stationary_large_per_image": 0.0, "moving_share": 0.0,
+    "HSAI": 0.26, "hsai_uncertainty": 0.5,
+    "qualitative": "Commercial shipping in the separation lanes is close to absent this month: neither image shows a single large vessel, and only one uncertain stationary medium-sized object appears, on 10-04. The only clearly active traffic is groups of small fast craft moving roughly NE in convoy-like strings on 10-04, and almost none on 10-09. moving_share is 0 because the only large/medium candidate has no wake; small craft are excluded from that ratio."
+  }
+}

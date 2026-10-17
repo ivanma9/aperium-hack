@@ -1,0 +1,32 @@
+{
+  "period": "2026-02",
+  "images": [
+    {"file": "hormuz_2026-02-16_ships.jpg", "cloud_pct": 0.01, "usable_fraction": 0.98,
+     "large_vessels": 1, "medium_vessels": 13, "small_vessels": 0,
+     "moving": 14, "stationary": 0,
+     "heading_inbound_NW": 3, "heading_outbound_SE": 10,
+     "clustering": "None. Vessels are spread out along the lanes: westbound ships in the northern half (q1/q2) and a loose SE-bound stream in q4 east of the Quoin islands.",
+     "confidence": "medium",
+     "notes": "Clear, glint-free scene. The q4 top-centre greenish hull (~15-20 px, SE-bound) is the only large vessel. Most other hulls are about 8-14 px, so many sit near the medium/large boundary. The q2 lower-left vessel (~280,1094) is moving but its heading is unclear. The q4 bottom-right vessel is cut off at the image edge. Not counted: a q2 speck at (~85,722) with no wake, and the 3 Quoin islets in q4."},
+    {"file": "hormuz_2026-02-21_ships.jpg", "cloud_pct": 0.0, "usable_fraction": 0.98,
+     "large_vessels": 2, "medium_vessels": 9, "small_vessels": 5,
+     "moving": 11, "stationary": 0,
+     "heading_inbound_NW": 5, "heading_outbound_SE": 4,
+     "clustering": "None. Westbound vessels sit in a band across the northern third. Eastbound and SE-bound vessels are scattered in q2-q4. Nothing is grouped or holding position.",
+     "confidence": "medium",
+     "notes": "Dark, clear scene with faint green surface slicks/streaks, which were not counted. Large vessels: a red-hulled westbound ship in q2 with a long wake, and a green hull SE-bound in q4. A bright fast-moving target with a broad V wake in q2 (~1400,715) is counted as one medium vessel heading NE, but it could be several boats. A partial vessel at the q1 left edge and the SW-heading q4 vessel (~828,170) have unclear lane direction. The 5 small craft all have wakes. The moving/stationary counts cover large and medium vessels only."},
+    {"file": "hormuz_2026-02-26_ships.jpg", "cloud_pct": 0.76, "usable_fraction": 0.85,
+     "large_vessels": 4, "medium_vessels": 7, "small_vessels": 0,
+     "moving": 10, "stationary": 1,
+     "heading_inbound_NW": 3, "heading_outbound_SE": 7,
+     "clustering": "None. Several eastbound ships are strung along the western/central lane (q1 lower-left to q3 top-right). One small stationary hull sits alone in q2 lower-right.",
+     "confidence": "medium",
+     "notes": "Many small cumulus clouds and their shadows are visible across all tiles, well above the 0.76% cloud-mask figure, so I estimate about 15% of the water is hidden. Large vessels: q1 green hull (~128,718), q1 cyan hull (~595,1175), q2 bright westbound (~205,313) and q3 top-right (~1100,140). The stationary medium vessel is at q2 (~1287,887) and has no wake. Not counted: a bright point at the q1 bottom edge (~955,1208), faint streaks in q4 lower-left (~155,835) that may be small-boat wakes, a speck at q4 (~1145,835), and cloud fragments next to the islets."}
+  ],
+  "summary": {
+    "large_per_image": 2.59, "medium_per_image": 10.23,
+    "stationary_large_per_image": 0.0, "moving_share": 0.97,
+    "HSAI": 7.71, "hsai_uncertainty": 2.5,
+    "qualitative": "Traffic was moderate and steady: about 11-14 large and medium vessels per image, all three images usable, and little change between images apart from the large/medium split. Almost every vessel was under way with a clear wake, with more eastbound/SE-bound than westbound traffic. No anchorages, queues or groups of stationary ships were seen."
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "period": "2025-12",
+  "images": [
+    {"file": "hormuz_2025-12-03_ships.jpg", "cloud_pct": 0.85, "usable_fraction": 0.97,
+     "large_vessels": 3, "medium_vessels": 6, "small_vessels": 4,
+     "moving": 8, "stationary": 1,
+     "heading_inbound_NW": 3, "heading_outbound_SE": 2,
+     "clustering": "None. Vessels are spread across the lanes, with one stationary large grey hull in the north-central area (q2).",
+     "confidence": "medium",
+     "notes": "Large vessels: two orange-hulled tankers with wakes (q1 west, heading WSW; q2 east, heading NW) and one stationary grey hull in q2. Medium vessels: q1 x2, q2 x1, q3 x1 (curved wake, heading NE, direction ambiguous), q4 x2 (one near the Quoin islets, oriented NW-SE, direction unclear). The white q1 vessel near the bottom edge is about 15 px and was classed as medium. Several 1-3 px specks in q2 and q3 were not all counted. Cloud/glint streaks in q3 were excluded. Moving and stationary counts cover large and medium vessels only."},
+    {"file": "hormuz_2025-12-13_ships.jpg", "cloud_pct": 2.68, "usable_fraction": 0.9,
+     "large_vessels": 4, "medium_vessels": 4, "small_vessels": 3,
+     "moving": 6, "stationary": 2,
+     "heading_inbound_NW": 2, "heading_outbound_SE": 3,
+     "clustering": "None observed.",
+     "confidence": "medium",
+     "notes": "A dense cumulus mass covers the right half of q3 (south-central), plus scattered cloud fragments in q2 and q4. This is more than the 2.68% mask suggests, so usable_fraction was set to 0.9. Large vessels: q2 x2 (wakes trailing SE, heading NW), q3 x2 (wakes trailing W, heading E). Medium vessels: q1 x1 (stationary), q2 x2, q3 x1 (stationary). A faint blob at q3 (685,520) and a speckle cluster at q1 (230,210) are possible vessels but were not counted. Some vessels near the 15 px boundary make the size class uncertain."},
+    {"file": "hormuz_2025-12-23_ships.jpg", "cloud_pct": 0.0, "usable_fraction": 1.0,
+     "large_vessels": 6, "medium_vessels": 7, "small_vessels": 5,
+     "moving": 13, "stationary": 0,
+     "heading_inbound_NW": 6, "heading_outbound_SE": 7,
+     "clustering": "Two lane-following groups, all under way: a westbound (inbound) group in north-central q1/q2 and an eastbound (outbound) line across the q1/q3 boundary into q3. No stationary clusters.",
+     "confidence": "high",
+     "notes": "Clear scene with strong, unambiguous wakes. One large vessel sits on the q1/q3 boundary (q1 bottom at about x=985; its wake shows at the top of q3) and was counted once. Several faint 2-4 px streaks in the lower middle of q3 may be small boats or whitecaps; only some were counted as small vessels."},
+    {"file": "hormuz_2025-12-30_ships.jpg", "cloud_pct": 0.03, "usable_fraction": 0.97,
+     "large_vessels": 1, "medium_vessels": 4, "small_vessels": 0,
+     "moving": 5, "stationary": 0,
+     "heading_inbound_NW": 1, "heading_outbound_SE": 4,
+     "clustering": "None observed.",
+     "confidence": "medium",
+     "notes": "Dense whitecap speckle across the whole scene makes small vessels impossible to separate from noise, so small_vessels was set to 0. Large vessel: an orange-hulled tanker in q3 heading E. Medium vessels: q2 x2 (one heading NW, one heading E), q3 x1 heading E, q4 x1 east of the Quoin islets heading SSE. Three of the medium vessels are about 12-15 px and could arguably be large. q1 contains no clear vessels."}
+  ],
+  "summary": {
+    "large_per_image": 3.64,
+    "medium_per_image": 5.44,
+    "stationary_large_per_image": 0.26,
+    "moving_share": 0.91,
+    "HSAI": 6.36,
+    "hsai_uncertainty": 2.0,
+    "qualitative": "Traffic was light to moderate and varied a lot between images: from 1 large and 4 medium vessels on 30 Dec to 6 large and 7 medium on 23 Dec. Almost all large and medium vessels were under way along the separation lanes, with inbound and outbound traffic roughly balanced (12 vs 16). Only one stationary large vessel was seen across the four images, and there were no anchorage queues or clusters."
+  }
+}

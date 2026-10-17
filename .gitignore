@@ -1,3 +1,5 @@
+.venv/
+results/tiles/
 .env
 .env.*
 !.env.example

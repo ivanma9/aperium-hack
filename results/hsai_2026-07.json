@@ -1,0 +1,42 @@
+{
+  "period": "2026-07",
+  "images": [
+    {"file": "hormuz_2026-07-06_ships.jpg", "cloud_pct": 0.0, "usable_fraction": 0.97,
+     "large_vessels": 0, "medium_vessels": 1, "small_vessels": 1,
+     "moving": 2, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 1,
+     "clustering": "None; the whole box is almost empty.",
+     "confidence": "medium",
+     "notes": "Medium vessel sits on the q3/q4 boundary (q3 right edge ~y670, q4 left edge ~y662) and is counted once. Its linear wake trails WSW, so it is heading ENE/E; logged as outbound. The hull is short (~6-10 px), so it may be small. Small bright cross-shaped target in q3 (~990,895) with a faint wake, counted as small. Faint short linear streaks in q4 (~300,820; ~640,220; ~1465,1080) could be faint small-boat wakes but are not counted. Mild glint and surface slicks in lower q3. 'moving' counts all vessels, small included."},
+    {"file": "hormuz_2026-07-11_ships.jpg", "cloud_pct": 2.96, "usable_fraction": 0.75,
+     "large_vessels": 0, "medium_vessels": 0, "small_vessels": 0,
+     "moving": 0, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 0,
+     "clustering": "None observed.",
+     "confidence": "medium",
+     "notes": "Scattered cumulus and shadows cover much of q4 and the lower q3/q2, more than the 2.96% mask suggests. Large bright glint/slick patches in q1 and q2. Linear features in q4 (e.g. ~850,800 and the curving bright bands) look like surface slicks or current fronts, not wakes. No hull is visible anywhere in the clear water, so the count is 0."},
+    {"file": "hormuz_2026-07-21_ships.jpg", "cloud_pct": 0.04, "usable_fraction": 0.95,
+     "large_vessels": 0, "medium_vessels": 1, "small_vessels": 13,
+     "moving": 14, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 0,
+     "clustering": "About 12 small fast craft with short wakes in the lower-middle of q2 (roughly x330-800, y620-1105), in 3-4 loose groups, all moving in a similar direction. This is an unusual grouping of small boats, not a queue of merchant ships.",
+     "confidence": "medium",
+     "notes": "q1 (~502,965): medium vessel with a long, strong wake trailing SSW, so it is heading NNE. That fits neither the NW nor the SE lane, so it is not given a heading. The hull is only ~5-8 px, so it could be a fast small craft. q2: ~12 short bright streaks are counted as small moving boats. q3 (~728,990): small vessel with a wake trailing NE, heading SSW, counted as small. q3 bottom-left (~30,1180), next to the Musandam coastline: a bright elongated object with lines, possibly a vessel, not counted. q3 (~1283,546): an isolated bright dot with no wake, not counted. q4 (~1360,1150): a small cloud. 'moving' counts all vessels, small included."},
+    {"file": "hormuz_2026-07-26_ships.jpg", "cloud_pct": 0.0, "usable_fraction": 0.95,
+     "large_vessels": 0, "medium_vessels": 0, "small_vessels": 0,
+     "moving": 0, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 0,
+     "clustering": "None observed.",
+     "confidence": "high",
+     "notes": "Wind-roughened water with many isolated single-pixel whitecap speckles across all tiles. None show a hull or wake, so none are counted. A cross-hatched textured patch in q3 (~1100-1300, 550-950) looks like a sea-state or interference pattern, not a vessel. Large vessels would be clearly visible against this background and there are none. Small-boat detectability is somewhat reduced by the speckle."}
+  ],
+  "summary": {
+    "large_per_image": 0.0,
+    "medium_per_image": 0.52,
+    "stationary_large_per_image": 0.0,
+    "moving_share": 1.0,
+    "HSAI": 0.26,
+    "hsai_uncertainty": 0.5,
+    "qualitative": "Merchant traffic in the separation lanes is essentially absent across all four images: no large vessels (>=150 m) were seen in any image, and only two medium-or-smaller vessels were seen in total, both under way. The only notable activity is a group of roughly a dozen small fast craft with wakes on 2026-07-21. There are no anchorages, queues or stationary large ships."
+  }
+}

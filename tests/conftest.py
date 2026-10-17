@@ -21,9 +21,11 @@ def database_url():
         url = resolve_test_database_url()
     except RuntimeError as exc:
         pytest.skip(str(exc))
+    if not psycopg.conninfo.conninfo_to_dict(url).get('dbname','').endswith('_test'):
+        pytest.fail('Refusing destructive test setup: database name must end in _test')
     try:
         with psycopg.connect(url, connect_timeout=3, autocommit=True) as conn:
-            conn.execute("DROP TABLE IF EXISTS positions, latest, ports, geographies CASCADE")
+            conn.execute("DROP TABLE IF EXISTS positions, latest, vessel_profiles, analytics_boundaries, ports, geographies CASCADE")
     except psycopg.OperationalError as exc:
         pytest.skip(f"Postgres not reachable at {redacted(url)} ({type(exc).__name__}); run `docker compose up -d db`")
     return url

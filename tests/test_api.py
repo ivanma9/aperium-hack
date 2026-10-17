@@ -43,7 +43,7 @@ def test_binary_stream_and_reconnect(database_url):
         async def provider(ws):
             subscription = json.loads(await ws.recv())
             assert subscription['APIKey'] == 'test-key'
-            assert subscription['BoundingBoxes'] == BOUNDING_BOXES
+            assert subscription['BoundingBoxes'][:len(BOUNDING_BOXES)] == BOUNDING_BOXES
             calls.append(subscription)
             await ws.send(json.dumps({'MessageType': 'SubscriptionConfirmation', 'Message': {}}))
             await ws.send(b'not-json')
@@ -142,8 +142,9 @@ def test_collector_subscription_and_binary_messages_without_network(monkeypatch,
                     while len(subscriptions) < 2 or app.state.stream['discarded_messages'] < 2:
                         await asyncio.sleep(.01)
                 await asyncio.wait_for(ready(), 5)
-                assert subscriptions[0]['BoundingBoxes'] == BOUNDING_BOXES
-                assert len(subscriptions[0]['BoundingBoxes']) == 4
+                assert subscriptions[0]['BoundingBoxes'][:len(BOUNDING_BOXES)] == BOUNDING_BOXES
+                assert len(subscriptions[0]['BoundingBoxes']) == len(BOUNDING_BOXES) + sum(len(g['gates']) for g in seed.GEOGRAPHIES) + len(seed.ANALYTICS_BOUNDARIES)
+                assert 'ShipStaticData' in subscriptions[0]['FilterMessageTypes']
                 assert app.state.stream['positions_received'] == 2
                 assert app.state.stream['invalid_messages'] == 2
                 assert app.state.stream['discarded_messages'] == 2

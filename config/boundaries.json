@@ -1,0 +1,11 @@
+[
+  {
+    "id": "hormuz_demo_gate",
+    "kind": "checkpoint",
+    "port": "hormuz",
+    "coordinates": [[56.5, 26.3], [56.5, 26.8]],
+    "source": "Analyst-drawn experimental gate, not an official traffic separation line. Requires review before operational use.",
+    "reviewed": false,
+    "purpose": "unknown"
+  }
+]

@@ -8,6 +8,36 @@ import re
 from datetime import datetime, timezone
 
 POSITION_TYPES = ["PositionReport", "StandardClassBPositionReport", "ExtendedClassBPositionReport"]
+STATIC_TYPES = ["ShipStaticData", "StaticDataReport"]
+
+
+def static_profile(message, received_at):
+    """Mergeable AIS profile fields; absent/zero type does not erase known identity."""
+    kind = message.get("MessageType")
+    if kind not in STATIC_TYPES + ["ExtendedClassBPositionReport"]:
+        return None
+    report = message.get("Message", {}).get(kind, {})
+    mmsi = str(report.get("UserID", ""))
+    if report.get("Valid") is False or not re.fullmatch(r"[1-9][0-9]{8}", mmsi):
+        return None
+    data = report
+    if kind == "StaticDataReport":
+        data = report.get("ReportB" if report.get("PartNumber") else "ReportA", {})
+        if data.get("Valid") is False:
+            return None
+    result = {"mmsi": mmsi, "updated_at": received_at, "source": "ais_self_reported"}
+    name = str(data.get("Name") or "").strip(" @")
+    if name:
+        result["name"] = name
+    code = number(data.get("Type", data.get("ShipType")))
+    if code is not None and code.is_integer() and 1 <= code <= 99:
+        code = int(code)
+        result.update(ship_type=code, vessel_class="tanker" if 80 <= code <= 89 else
+                      ("cargo" if 70 <= code <= 79 else "other"), classification_updated_at=received_at)
+    imo = number(data.get("ImoNumber"))
+    if imo and imo.is_integer() and 1000000 <= imo <= 9999999:
+        result["imo"] = int(imo)
+    return result if len(result) > 3 else None
 
 
 def bounding_boxes(ports):

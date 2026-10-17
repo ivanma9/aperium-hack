@@ -12,6 +12,7 @@ import psycopg
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse, StreamingResponse
+from starlette.concurrency import run_in_threadpool
 from websockets.asyncio.client import connect
 
 from aperium import api as monitor_api
@@ -19,15 +20,14 @@ from aperium.db import CHANNEL, Store, describe
 from aperium.db import database_url as env_database_url
 from aperium.recorder import raw_path
 from aperium.regions import REGIONS
-from aperium.tracking import POSITION_TYPES, bounding_boxes, normalize
+from aperium.tracking import POSITION_TYPES, STATIC_TYPES, bounding_boxes, normalize, static_profile
+from aperium.analytics import analyze
 
 log = logging.getLogger("aperium")
 STREAM_URL = "wss://stream.aisstream.io/v0/stream"
 # SSE comment sent when idle so proxies keep the connection open.
 HEARTBEAT_SECONDS = 15
 SUBSCRIBER_QUEUE = 1000
-# Tanker-monitor regions and vessel details ride on the same connection (AISstream allows one per key).
-STATIC_TYPES = ["ShipStaticData"]
 
 
 def record_raw(message):
@@ -46,8 +46,7 @@ async def collect(app, key, url=STREAM_URL):
         state["status"] = "connecting"
         try:
             async with connect(url, compression="deflate", ping_interval=20, ping_timeout=20) as ws:
-                boxes = bounding_boxes(app.state.ports) + [r["bbox"] for r in REGIONS.values()]
-                await ws.send(json.dumps({"APIKey": key, "BoundingBoxes": boxes,
+                await ws.send(json.dumps({"APIKey": key, "BoundingBoxes": app.state.subscription_boxes,
                                           "FilterMessageTypes": POSITION_TYPES + STATIC_TYPES}))
                 state["status"] = "awaiting_subscription"
                 async for raw in ws:
@@ -67,12 +66,14 @@ async def collect(app, key, url=STREAM_URL):
                         state["messages_received"] += 1
                         if getattr(app.state, "record_raw", False):
                             record_raw(message)
-                        if message.get("MessageType") in STATIC_TYPES:
-                            continue
+                        profile = static_profile(message, now)
                         position = normalize(message, now)
                     except (ValueError, TypeError, AttributeError):
                         state["invalid_messages"] += 1
                         continue
+                    if profile:
+                        await app.state.store.save_profile(profile)
+                        state['profiles_received'] += 1
                     if position:
                         await app.state.store.save(position)
                         state["status"] = "receiving"
@@ -80,7 +81,7 @@ async def collect(app, key, url=STREAM_URL):
                         state["positions_received"] += 1
                         state["last_position_at"] = now
                         delay = 1
-                    else:
+                    elif not profile:
                         state["discarded_messages"] += 1
         except asyncio.CancelledError:
             raise
@@ -135,12 +136,20 @@ def create_app(database_url=None, api_key=None, stream_url=STREAM_URL, record=No
         app.state.store = await Store.open(dsn)
         # Geofences are read once at startup; restart after editing the `ports` table.
         app.state.ports = await app.state.store.ports()
+        app.state.geographies = await app.state.store.geographies()
+        app.state.boundaries = await app.state.store.boundaries()
+        # Keep the monitor's regions and analytics geometry on the same AIS connection.
+        app.state.subscription_boxes = bounding_boxes(app.state.ports) + [r["bbox"] for r in REGIONS.values()]
+        for boundary in app.state.boundaries:
+            xs,ys = zip(*boundary.coordinates)
+            app.state.subscription_boxes.append([[max(-90,min(ys)-.05), max(-180,min(xs)-.05)],
+                [min(90,max(ys)+.05),min(180,max(xs)+.05)]])
         app.state.subscribers = set()
         app.state.record_raw = record if record is not None else os.getenv("RECORD_RAW", "1") != "0"
         app.state.listening = False
         app.state.stream = dict(status="missing_api_key", last_error=None, last_message_at=None,
                                 last_position_at=None, messages_received=0, positions_received=0,
-                                invalid_messages=0, discarded_messages=0, reconnects=0, started_at=time.time())
+                                invalid_messages=0, discarded_messages=0, profiles_received=0, reconnects=0, started_at=time.time())
         tasks = [asyncio.create_task(listen(app, dsn))]
         if key.strip():
             tasks.append(asyncio.create_task(collect(app, key, stream_url)))
@@ -168,6 +177,56 @@ def create_app(database_url=None, api_key=None, stream_url=STREAM_URL, record=No
     def check_port(port):
         if port is not None and port not in port_ids():
             raise HTTPException(422, f"Unknown port {port!r}; expected one of {sorted(port_ids())}")
+
+    def check_geography(geography):
+        for geo in app.state.geographies:
+            if geo['id']==geography:
+                return geo
+        raise HTTPException(422, 'Unknown geography')
+
+    @app.get('/api/boundaries')
+    async def boundaries(geography: str = 'hormuz'):
+        check_geography(geography)
+        return [b.model_dump() for b in app.state.boundaries if b.geography_id==geography]
+
+    @app.get('/api/analytics')
+    async def analytics(geography: str = 'hormuz', hours: int = Query(24, ge=1, le=168), port: Optional[str] = None):
+        geo = check_geography(geography)
+        check_port(port)
+        selected_port = next((p for p in geo['ports'] if p['id']==port),None)
+        if port and selected_port is None:
+            raise HTTPException(422,'Port does not belong to this geography')
+        bounds = [b for b in app.state.boundaries if b.geography_id==geography and (not port or b.port==port)]
+        bbox = list(geo['bbox'])
+        if selected_port:
+            (south,west),(north,east)=selected_port['bounds_lat_lon']
+            bbox=[west,south,east,north]
+        # Retain observations on both sides of every analytics feature.
+        for boundary in bounds:
+            xs,ys=zip(*boundary.coordinates)
+            bbox=[min(bbox[0],min(xs)-.05),min(bbox[1],min(ys)-.05),max(bbox[2],max(xs)+.05),max(bbox[3],max(ys)+.05)]
+        now=time.time()
+        try:
+            rows,profiles=await app.state.store.analytics_snapshot(now-hours*3600,now,bbox)
+            result=await run_in_threadpool(analyze, rows, profiles, bounds, now, hours, app.state.stale_seconds)
+        except ValueError as exc:
+            raise HTTPException(422,str(exc)) from exc
+        return {**result,'geography_id':geography,'port':port,
+                'boundaries':[b.model_dump() for b in bounds], 'stream_status':app.state.stream['status']}
+
+    @app.get('/api/coverage')
+    async def coverage(geography: str = 'hormuz'):
+        geo=check_geography(geography)
+        now=time.time()
+        try:
+            rows,profiles=await app.state.store.analytics_snapshot(now-3600,now,geo['bbox'])
+        except ValueError as exc:
+            raise HTTPException(422,str(exc)) from exc
+        latest={r['mmsi']:r for r in rows}
+        fresh=[m for m,r in latest.items() if now-r['observed_at']<=app.state.stale_seconds]
+        return {'geography_id':geography,'completeness':'unverified','fresh_observed_vessels':len(fresh),
+                'unclassified_fresh_vessels':sum(profiles.get(m,{}).get('vessel_class','unknown')=='unknown' for m in fresh),
+                'latest_observed_at':max((r['observed_at'] for r in rows),default=None)}
 
     @app.get("/", include_in_schema=False)
     async def root():

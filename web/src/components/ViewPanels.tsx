@@ -10,11 +10,13 @@ import { forecastSupply } from "@/lib/model";
 import { aisInGeography, selectGeography, type CollectorState, type ShipRef, type ViewId } from "@/store/tidemark";
 import { Segmented } from "./Segmented";
 import { useTidemark } from "./TidemarkProvider";
+import { AnalyticsPanel } from './AnalyticsPanel';
 
 const VIEWS: { id: ViewId; label: string }[] = [
   { id: "flow", label: "Flow" },
   { id: "vessels", label: "Vessels" },
   { id: "ports", label: "Ports" },
+  { id: "analytics", label: "Analytics" },
   { id: "supply", label: "Supply" },
   { id: "cpi", label: "CPI" },
   { id: "connect", label: "API/MCP" },
@@ -54,6 +56,7 @@ function ViewContent({ view }: { view: ViewId }) {
       {view === "flow" && <FlowPanel />}
       {view === "vessels" && <VesselsPanel />}
       {view === "ports" && <PortsPanel />}
+      {view === "analytics" && <AnalyticsPanel />}
       {view === "supply" && <SupplyPanel />}
       {view === "cpi" && <CpiPanel />}
       {view === "connect" && <ConnectPanel />}

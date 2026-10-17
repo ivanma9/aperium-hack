@@ -17,6 +17,7 @@ from psycopg.types.json import Jsonb
 from psycopg_pool import AsyncConnectionPool
 
 from aperium import seed
+from aperium.analytics import Boundary
 from aperium.tracking import matching_ports
 
 CHANNEL = "vessel_positions"
@@ -84,6 +85,14 @@ CREATE TABLE IF NOT EXISTS positions (
     UNIQUE (mmsi, observed_at, latitude, longitude)
 );
 CREATE INDEX IF NOT EXISTS position_history ON positions (mmsi, observed_at);
+CREATE INDEX IF NOT EXISTS positions_time ON positions (observed_at);
+CREATE TABLE IF NOT EXISTS vessel_profiles (
+    mmsi TEXT PRIMARY KEY, data JSONB NOT NULL
+);
+CREATE TABLE IF NOT EXISTS analytics_boundaries (
+    id TEXT PRIMARY KEY, geography_id TEXT NOT NULL REFERENCES geographies(id),
+    data JSONB NOT NULL
+);
 CREATE TABLE IF NOT EXISTS latest (
     mmsi TEXT PRIMARY KEY, name TEXT, latitude DOUBLE PRECISION, longitude DOUBLE PRECISION,
     speed_knots DOUBLE PRECISION, course DOUBLE PRECISION, nav_status INTEGER,
@@ -152,6 +161,48 @@ class Store:
                         "INSERT INTO ports (id, name, geography_id, south, west, north, east) "
                         "VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT (id) DO NOTHING",
                         [p["id"], p["name"], p["geography_id"], south, west, north, east])
+                # Seed the same gates the frontend draws. Never overwrite reviewed edits.
+                for item in seed.ANALYTICS_BOUNDARIES:
+                    boundary = Boundary.model_validate(item)
+                    await conn.execute('INSERT INTO analytics_boundaries (id,geography_id,data) VALUES (%s,%s,%s) ON CONFLICT (id) DO NOTHING',
+                        (boundary.id,boundary.geography_id,Jsonb(boundary.model_dump())))
+                geos = await (await conn.execute('SELECT id, gates FROM geographies')).fetchall()
+                for geo in geos:
+                    for index, coordinates in enumerate(geo['gates']):
+                        gate = Boundary(id=f"{geo['id']}_gate_{index+1}", geography_id=geo['id'],
+                            port=geo['id'], kind='checkpoint', coordinates=coordinates,
+                            source='Existing geography gate: analyst approximation, not an official navigation boundary.', reviewed=False)
+                        await conn.execute('INSERT INTO analytics_boundaries VALUES (%s,%s,%s) ON CONFLICT (id) DO NOTHING',
+                            (gate.id,gate.geography_id,Jsonb(gate.model_dump())))
+
+    async def save_profile(self, profile):
+        async with self.pool.connection() as conn:
+            await conn.execute('''INSERT INTO vessel_profiles (mmsi,data) VALUES (%s,%s)
+                ON CONFLICT (mmsi) DO UPDATE SET data=vessel_profiles.data || excluded.data
+                WHERE COALESCE((vessel_profiles.data->>'updated_at')::double precision,0)
+                    <= (excluded.data->>'updated_at')::double precision''',
+                (profile['mmsi'], Jsonb(profile)))
+
+    async def boundaries(self, geography=None):
+        async with self.pool.connection() as conn:
+            rows = await (await conn.execute('SELECT data FROM analytics_boundaries WHERE (%s::text IS NULL OR geography_id=%s) ORDER BY id', (geography,geography))).fetchall()
+        return [Boundary.model_validate(r['data']) for r in rows]
+
+    async def analytics_snapshot(self, since, now, bbox):
+        """Time/area scoped read; fail rather than silently truncate large histories."""
+        west,south,east,north = bbox
+        async with self.pool.connection() as conn:
+            async with conn.transaction():
+                await conn.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
+                rows = await (await conn.execute('''SELECT * FROM positions
+                    WHERE observed_at BETWEEN %s AND %s AND longitude BETWEEN %s AND %s
+                    AND latitude BETWEEN %s AND %s ORDER BY mmsi,observed_at LIMIT 100001''',
+                    (since,now,west,east,south,north))).fetchall()
+                if len(rows)>100000:
+                    raise ValueError('Too many observations; request a smaller hours window')
+                ids = list({r['mmsi'] for r in rows})
+                profile_rows = await (await conn.execute('SELECT mmsi,data FROM vessel_profiles WHERE mmsi=ANY(%s)', (ids,))).fetchall()
+        return rows, {r['mmsi']:r['data'] for r in profile_rows}
 
     async def save(self, position):
         columns = [c for c in POSITION_COLUMNS if c in position]
@@ -168,7 +219,7 @@ class Store:
 
     async def vessels(self, now, stale_seconds, ports):
         async with self.pool.connection() as conn:
-            rows = await (await conn.execute("SELECT * FROM latest ORDER BY observed_at DESC")).fetchall()
+            rows = await (await conn.execute("SELECT latest.*, COALESCE(vessel_profiles.data, '{\"vessel_class\":\"unknown\"}'::jsonb) AS profile FROM latest LEFT JOIN vessel_profiles USING(mmsi) ORDER BY observed_at DESC")).fetchall()
         return [describe(r, now, stale_seconds, ports) for r in rows]
 
     async def history(self, mmsi, limit):

@@ -178,15 +178,15 @@ function addOverlayLayers(map: MlMap) {
     id: "ports-fill",
     type: "fill",
     source: "ports",
-    paint: { "fill-color": COLORS.positive, "fill-opacity": ["case", [...selected], 0.2, 0.06] },
+    paint: { "fill-color": ["case", [...selected], COLORS.accent, COLORS.positive], "fill-opacity": ["case", [...selected], 0.2, 0.06] },
   });
   map.addLayer({
     id: "ports-line",
     type: "line",
     source: "ports",
     paint: {
-      "line-color": COLORS.positive,
-      "line-width": ["case", [...selected], 1.8, 1],
+      "line-color": ["case", [...selected], COLORS.accent, COLORS.positive],
+      "line-width": ["case", [...selected], 3, 1],
       "line-dasharray": [3, 2],
       "line-opacity": 0.7,
     },
@@ -230,7 +230,7 @@ function addOverlayLayers(map: MlMap) {
 
 /** Keeps map layers in step with the store: geography, view emphasis, flow, ports. */
 function MapSync({ map }: { map: MlMap }) {
-  const { geography, view, ratio, counts, selectedPortId, hudVisible, selectPort } = useTidemark(
+  const { geography, view, ratio, counts, selectedPortId, hudVisible, selectPort, setAnalyticsPort } = useTidemark(
     useShallow((s) => ({
       geography: selectGeography(s),
       view: s.view,
@@ -239,25 +239,24 @@ function MapSync({ map }: { map: MlMap }) {
       selectedPortId: s.selectedPortId,
       hudVisible: s.hudVisible,
       selectPort: s.selectPort,
+      setAnalyticsPort: s.setAnalyticsPort,
     })),
   );
-  const framed = useRef<{ geographyId: string; hudVisible: boolean } | null>(null);
-
-  // Geography geometry + camera. Re-frame on a new geography, or when overlays appear/disappear.
+  // Geography geometry.
   useEffect(() => {
     (map.getSource("lanes") as GeoJSONSource).setData(lanesData(geography));
     (map.getSource("gates") as GeoJSONSource).setData(gatesData(geography));
     const offset = geography.laneOffsetPx ?? 0;
     map.setPaintProperty("lane-outbound", "line-offset", offset);
     map.setPaintProperty("lane-inbound", "line-offset", offset);
-    const prev = framed.current;
-    if (prev && (prev.geographyId !== geography.id || prev.hudVisible !== hudVisible)) {
-      // Wait a frame so overlays have mounted/unmounted before measuring them.
-      const id = requestAnimationFrame(() => frame(map, geography.bbox, true));
-      framed.current = { geographyId: geography.id, hudVisible };
-      return () => cancelAnimationFrame(id);
-    }
-    framed.current = { geographyId: geography.id, hudVisible };
+  }, [map, geography]);
+
+  // Reframe only for geography or HUD changes; port selection preserves the camera.
+  useEffect(() => {
+    // Measure overlays after the panel has rendered; respect reduced-motion preferences.
+    const id = requestAnimationFrame(() => frame(map, geography.bbox,
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches));
+    return () => cancelAnimationFrame(id);
   }, [map, geography, hudVisible]);
 
   // Port geofences + live counts.
@@ -274,11 +273,14 @@ function MapSync({ map }: { map: MlMap }) {
     };
   }, [map, selectedPortId, geography]);
 
-  // Clicking a geofence opens it in the Ports view.
+  // In Analytics, map clicks update the same area filter without changing tabs.
   useEffect(() => {
     const onClick = (e: MapLayerMouseEvent) => {
       const id = e.features?.[0]?.properties?.id;
-      if (typeof id === "string") selectPort(id);
+      if (typeof id === "string") {
+        if (view === "analytics") setAnalyticsPort(id);
+        else selectPort(id);
+      }
     };
     const enter = () => {
       map.getCanvas().style.cursor = "pointer";
@@ -294,7 +296,7 @@ function MapSync({ map }: { map: MlMap }) {
       map.off("mouseenter", "ports-fill", enter);
       map.off("mouseleave", "ports-fill", leave);
     };
-  }, [map, selectPort]);
+  }, [map, selectPort, setAnalyticsPort, view]);
 
   // View emphasis; the laden lane's width tracks observed flow.
   useEffect(() => {
@@ -305,8 +307,8 @@ function MapSync({ map }: { map: MlMap }) {
     map.setPaintProperty("lane-outbound", "line-opacity", flowEmph ? 0.85 : 0.35);
     map.setPaintProperty("lane-inbound", "line-opacity", flowEmph ? 0.4 : 0.2);
     map.setPaintProperty("gates", "line-opacity", view === "vessels" ? 0.5 : 0);
-    map.setPaintProperty("ports-line", "line-opacity", view === "ports" ? 0.9 : view === "vessels" ? 0.6 : 0.4);
-    map.setPaintProperty("ports-label", "text-opacity", view === "ports" || view === "vessels" ? 1 : 0);
+    map.setPaintProperty("ports-line", "line-opacity", view === "ports" || view === "analytics" ? 0.9 : view === "vessels" ? 0.6 : 0.4);
+    map.setPaintProperty("ports-label", "text-opacity", view === "ports" || view === "vessels" || view === "analytics" ? 1 : 0);
   }, [map, view, ratio]);
 
   // Animate the lane dashes; respect reduced motion.

@@ -11,7 +11,3 @@ export function utcClock(ts: number): string {
   return new Date(ts).toISOString().slice(11, 19) + "Z";
 }
 
-/** "HH:MMZ" from an ISO string. */
-export function utcHourMinute(iso: string): string {
-  return iso.slice(11, 16) + "Z";
-}

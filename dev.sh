@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Run the Aperium AIS collector (FastAPI) and the Tidemark frontend (Next.js on Bun) together.
-# Ctrl-C stops both. Installs missing dependencies on first run.
+# Run Postgres (Docker), the Aperium AIS collector (FastAPI) and the Tidemark frontend
+# (Next.js on Bun) together. Ctrl-C stops the collector and frontend; Postgres keeps
+# running in Docker (stop it with `docker compose stop db`). Installs missing deps on first run.
 #
 #   ./dev.sh                         # backend :8000, frontend :3000
 #   BACKEND_PORT=8001 FRONTEND_PORT=3001 ./dev.sh
@@ -20,8 +21,14 @@ for p in "$BACKEND_PORT" "$FRONTEND_PORT"; do
   port_in_use "$p" && die "Port $p is already in use (lsof -iTCP:$p -sTCP:LISTEN)."
 done
 
-# ── Backend setup ───────────────────────────────────────────
+# ── Postgres (compose.yaml) ─────────────────────────────────
 cd "$ROOT"
+command -v docker >/dev/null 2>&1 || die "Need Docker for Postgres (compose.yaml). Install Docker Desktop."
+docker info >/dev/null 2>&1 || die "Docker isn't running. Start Docker Desktop (open -a Docker) and retry."
+say "Starting Postgres…"
+docker compose up -d --wait db >/dev/null || die "Postgres failed to start: docker compose logs db"
+
+# ── Backend setup ───────────────────────────────────────────
 if [[ ! -f .env ]]; then
   cp .env.example .env
   warn "Created .env from .env.example. Set AISSTREAM_API_KEY in it to receive live AIS data."
@@ -81,7 +88,7 @@ set -m  # give each background job its own process group so cleanup reaches chil
 (cd "$ROOT" && exec "${BACKEND_CMD[@]}" aperium.app:app --host 127.0.0.1 --port "$BACKEND_PORT" --reload --reload-dir aperium 2>&1) \
   > >(prefix backend "$green") &
 pids+=($!)
-(cd "$ROOT/web" && exec bun --bun next dev -p "$FRONTEND_PORT" 2>&1) \
+(cd "$ROOT/web" && APERIUM_API_URL="http://127.0.0.1:$BACKEND_PORT" exec bun run dev -p "$FRONTEND_PORT" 2>&1) \
   > >(prefix web "$blue") &
 pids+=($!)
 set +m

@@ -1,4 +1,4 @@
-import type { LocationConfig } from "@/config/locations";
+import type { Geography } from "@/lib/geographies";
 import type { ModelParams } from "@/config/model";
 import type { ScenarioConfig } from "@/config/scenarios";
 
@@ -9,7 +9,7 @@ import type { ScenarioConfig } from "@/config/scenarios";
  */
 
 export interface OutlookInput {
-  location: LocationConfig;
+  geography: Geography;
   scenario: ScenarioConfig;
   /** Observed / baseline flow ratio from gate crossings. */
   ratio: number;
@@ -44,18 +44,18 @@ export interface Outlook {
 }
 
 export function computeOutlook(input: OutlookInput, params: ModelParams): Outlook {
-  const { location, scenario, ratio, eventsSinceShock } = input;
-  const base = location.baseMbd;
+  const { geography, scenario, ratio, eventsSinceShock } = input;
+  const base = geography.baseMbd;
 
   const flowMbd = base * ratio;
   const gapMbd = base - flowMbd;
   const bypassReady = Math.min(1, Math.max(0, eventsSinceShock / params.bypassRampEvents));
-  const bypassMbd = gapMbd > 0 ? Math.min(location.bypassCapMbd, gapMbd) * bypassReady : 0;
+  const bypassMbd = gapMbd > 0 ? Math.min(geography.bypassCapMbd, gapMbd) * bypassReady : 0;
   const netMbd = Math.max(0, gapMbd - bypassMbd);
 
   const supplyPct =
     gapMbd > 0 ? netMbd * params.brentPctPerMbd : gapMbd * params.brentPctPerMbd * params.surplusDamping;
-  const brentPct = supplyPct + scenario.premiumPct * location.premiumMultiplier;
+  const brentPct = supplyPct + scenario.premiumPct * geography.premiumMultiplier;
   const brentUsd = params.brentRefUsd * (1 + brentPct / 100);
   const gasPct = ((params.gasUsdPerBrentUsd * (brentUsd - params.brentRefUsd)) / params.gasRefUsd) * 100;
 
@@ -117,17 +117,17 @@ export interface SupplyForecast {
 const BYPASS_RAMP_DAYS = 10;
 
 export function forecastSupply(
-  location: LocationConfig,
+  geography: Geography,
   scenario: ScenarioConfig,
   { horizonDays = 90, stepDays = 2 }: { horizonDays?: number; stepDays?: number } = {},
 ): SupplyForecast {
-  const base = location.baseMbd;
+  const base = geography.baseMbd;
   const points: SupplyPoint[] = [];
   for (let day = 0; day <= horizonDays; day += stepDays) {
     const transitMbd = base * (1 - scenario.depth * shockAt(scenario, day));
     const withBypassMbd =
       scenario.depth > 0
-        ? transitMbd + Math.min(base - transitMbd, location.bypassCapMbd) * Math.min(1, day / BYPASS_RAMP_DAYS)
+        ? transitMbd + Math.min(base - transitMbd, geography.bypassCapMbd) * Math.min(1, day / BYPASS_RAMP_DAYS)
         : transitMbd;
     points.push({ day, transitMbd, withBypassMbd, sigmaMbd: scenario.sigmaMbd * (0.3 + day / horizonDays) });
   }

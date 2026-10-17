@@ -1,7 +1,7 @@
-import { DEFAULT_LOCATION_ID, getLocation, type LocationConfig } from "@/config/locations";
 import { DEFAULT_MODEL_PARAMS, type ModelParams } from "@/config/model";
 import { DEFAULT_SCENARIO_ID, getScenario } from "@/config/scenarios";
-import { headingAlong, pointAlong, toLonLat } from "@/lib/geo";
+import { findGeography, type Geography } from "@/lib/geographies";
+import { headingAlong, pointAlong } from "@/lib/geo";
 import { computeOutlook } from "@/lib/model";
 import type {
   AisPosition,
@@ -72,19 +72,22 @@ function crossed(prev: number, next: number, th: number): boolean {
 }
 
 export interface MockFeedOptions {
+  /** Geographies from GET /api/geographies; the first is the default. */
+  geographies: readonly Geography[];
   params?: ModelParams;
   /** Clock for the deterministic initial snapshot. */
   now?: number;
   random?: () => number;
 }
 
-export function createMockFeed(opts: MockFeedOptions = {}): FeedClient {
+export function createMockFeed(opts: MockFeedOptions): FeedClient {
+  const { geographies } = opts;
   const params = opts.params ?? DEFAULT_MODEL_PARAMS;
   const random = opts.random ?? Math.random;
 
   const r0 = 0.93;
   const state = {
-    locationId: DEFAULT_LOCATION_ID,
+    geographyId: geographies[0].id,
     scenarioId: DEFAULT_SCENARIO_ID,
     // The prototype opens 30 events after the last shock, so the bypass is fully ramped.
     eventsSinceShock: 30,
@@ -99,9 +102,9 @@ export function createMockFeed(opts: MockFeedOptions = {}): FeedClient {
   let timer: ReturnType<typeof setInterval> | null = null;
   const pending = new Set<ReturnType<typeof setTimeout>>();
 
-  const loc = (): LocationConfig => getLocation(state.locationId);
+  const loc = (): Geography => findGeography(geographies, state.geographyId);
 
-  const tileFor = (l: LocationConfig, capturedAt: string, cloud: number): ImageryTile => ({
+  const tileFor = (l: Geography, capturedAt: string, cloud: number): ImageryTile => ({
     location: l.slug,
     provider: l.imageryProvider,
     tile_id: `${l.slug}-${capturedAt.replace(/[^0-9]/g, "").slice(0, 12)}`,
@@ -110,19 +113,19 @@ export function createMockFeed(opts: MockFeedOptions = {}): FeedClient {
     gsd_m: 10,
   });
 
-  const initialTile = (l: LocationConfig): ImageryTile => {
+  const initialTile = (l: Geography): ImageryTile => {
     const t = TILE_TIMES[l.id] ?? { hm: "00:00", cloud: 0 };
     const day = new Date(state.now).toISOString().slice(0, 10);
     return tileFor(l, `${day}T${t.hm}:00Z`, t.cloud);
   };
 
-  const position = (v: SimVessel, l: LocationConfig): AisPosition => {
-    const lane = l.geometry.lanes[v.direction];
-    const { lon, lat } = toLonLat(l, pointAlong(lane, v.t));
+  const position = (v: SimVessel, l: Geography): AisPosition => {
+    const lane = l.lanes[v.direction];
+    const [lon, lat] = pointAlong(lane, v.t);
     return { mmsi: v.mmsi, lat, lon, sog_kn: v.kn, heading: Math.round(headingAlong(lane, v.t)), ts: state.now };
   };
 
-  const toVessel = (v: SimVessel, l: LocationConfig): Vessel => {
+  const toVessel = (v: SimVessel, l: Geography): Vessel => {
     const vesselClass = CLASSES[v.index];
     const laden = v.direction === "outbound";
     const dests = l.destinations[v.direction];
@@ -156,7 +159,7 @@ export function createMockFeed(opts: MockFeedOptions = {}): FeedClient {
   const outlook = (): CpiRecomputed => {
     const l = loc();
     const chain = computeOutlook(
-      { location: l, scenario: getScenario(state.scenarioId), ratio: state.ratio, eventsSinceShock: state.eventsSinceShock },
+      { geography: l, scenario: getScenario(state.scenarioId), ratio: state.ratio, eventsSinceShock: state.eventsSinceShock },
       params,
     );
     return {
@@ -242,12 +245,12 @@ export function createMockFeed(opts: MockFeedOptions = {}): FeedClient {
   };
 
   return {
-    async getSnapshot(locationId, scenarioId) {
-      if (locationId !== state.locationId || scenarioId !== state.scenarioId) {
+    async getSnapshot(geographyId, scenarioId) {
+      if (geographyId !== state.geographyId || scenarioId !== state.scenarioId) {
         // Drop in-flight events for the previous location.
         pending.forEach(clearTimeout);
         pending.clear();
-        state.locationId = getLocation(locationId).id;
+        state.geographyId = findGeography(geographies, geographyId).id;
         state.scenarioId = getScenario(scenarioId).id;
         state.eventsSinceShock = 0;
         state.tile = null;
@@ -266,8 +269,8 @@ export function createMockFeed(opts: MockFeedOptions = {}): FeedClient {
       };
     },
 
-    async runScenario(locationId, scenarioId) {
-      state.locationId = getLocation(locationId).id;
+    async runScenario(geographyId, scenarioId) {
+      state.geographyId = findGeography(geographies, geographyId).id;
       state.scenarioId = getScenario(scenarioId).id;
       state.eventsSinceShock = 0;
       return outlook();
@@ -285,6 +288,6 @@ export function createMockFeed(opts: MockFeedOptions = {}): FeedClient {
 }
 
 /** Server-side initial snapshot for SSR; identical to a fresh client mock's first read. */
-export function getMockSnapshot(): Promise<Snapshot> {
-  return createMockFeed().getSnapshot(DEFAULT_LOCATION_ID, DEFAULT_SCENARIO_ID);
+export function getMockSnapshot(geographies: readonly Geography[]): Promise<Snapshot> {
+  return createMockFeed({ geographies }).getSnapshot(geographies[0].id, DEFAULT_SCENARIO_ID);
 }

@@ -108,8 +108,8 @@ export interface Snapshot {
  * maps to REST (`getSnapshot`, `runScenario`) and the WebSocket (`subscribe`).
  */
 export interface FeedClient {
-  getSnapshot(locationId: string, scenarioId: string): Promise<Snapshot>;
-  runScenario(locationId: string, scenarioId: string): Promise<CpiRecomputed>;
+  getSnapshot(geographyId: string, scenarioId: string): Promise<Snapshot>;
+  runScenario(geographyId: string, scenarioId: string): Promise<CpiRecomputed>;
   /** Returns an unsubscribe function. */
   subscribe(onEvent: (e: FeedEvent) => void): () => void;
 }

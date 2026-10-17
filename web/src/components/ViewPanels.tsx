@@ -2,18 +2,19 @@
 
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { getLocation } from "@/config/locations";
 import { DEFAULT_MODEL_PARAMS } from "@/config/model";
 import { getScenario } from "@/config/scenarios";
+import { NAV_STATUS } from "@/lib/aperium/client";
 import { signed } from "@/lib/format";
 import { forecastSupply } from "@/lib/model";
-import type { ViewId } from "@/store/tidemark";
+import { aisInGeography, selectGeography, type CollectorState, type ShipRef, type ViewId } from "@/store/tidemark";
 import { Segmented } from "./Segmented";
 import { useTidemark } from "./TidemarkProvider";
 
 const VIEWS: { id: ViewId; label: string }[] = [
   { id: "flow", label: "Flow" },
   { id: "vessels", label: "Vessels" },
+  { id: "ports", label: "Ports" },
   { id: "supply", label: "Supply" },
   { id: "cpi", label: "CPI" },
   { id: "connect", label: "API/MCP" },
@@ -38,15 +39,25 @@ export function ViewTabs() {
 }
 
 export function ViewPanel() {
-  const view = useTidemark((s) => s.view);
+  const { view, hovered } = useTidemark(useShallow((s) => ({ view: s.view, hovered: s.hovered })));
   return (
     <div id={PANEL_ID} role="tabpanel" aria-labelledby={`${TAB_PREFIX}-${view}`} className="hud glass hud-panel">
+      {/* Hovering or focusing a ship previews it here, whatever the view. */}
+      {hovered ? <ShipPreview ship={hovered} /> : <ViewContent view={view} />}
+    </div>
+  );
+}
+
+function ViewContent({ view }: { view: ViewId }) {
+  return (
+    <>
       {view === "flow" && <FlowPanel />}
       {view === "vessels" && <VesselsPanel />}
+      {view === "ports" && <PortsPanel />}
       {view === "supply" && <SupplyPanel />}
       {view === "cpi" && <CpiPanel />}
       {view === "connect" && <ConnectPanel />}
-    </div>
+    </>
   );
 }
 
@@ -70,10 +81,9 @@ function sparkline(history: number[]) {
 }
 
 function FlowPanel() {
-  const { history, flow, outlook, locationId } = useTidemark(
-    useShallow((s) => ({ history: s.history, flow: s.flow, outlook: s.outlook, locationId: s.locationId })),
+  const { history, flow, outlook, loc } = useTidemark(
+    useShallow((s) => ({ history: s.history, flow: s.flow, outlook: s.outlook, loc: selectGeography(s) })),
   );
-  const loc = getLocation(locationId);
   const spark = sparkline(history);
   const { chain } = outlook;
   return (
@@ -114,14 +124,19 @@ function FlowPanel() {
 /* ── Vessels ──────────────────────────────────────────── */
 
 function VesselsPanel() {
-  const { vessels, selected, flow, selectVessel } = useTidemark(
-    useShallow((s) => ({ vessels: s.vessels, selected: s.selectedMmsi, flow: s.flow, selectVessel: s.selectVessel })),
+  const { vessels, selected, flow, aisCount, aisConnected } = useTidemark(
+    useShallow((s) => ({
+      vessels: s.vessels,
+      selected: s.selected,
+      flow: s.flow,
+      aisCount: aisInGeography(s).filter((v) => !v.stale).length,
+      aisConnected: s.ais.connected,
+    })),
   );
   const list = Object.values(vessels);
   const outC = list.filter((v) => v.inCorridor && v.direction === "outbound").length;
   const inC = list.filter((v) => v.inCorridor && v.direction === "inbound").length;
   const darkC = list.filter((v) => v.ais === "dark").length;
-  const sel = selected ? vessels[selected] : undefined;
   // Placeholder: 24h of laden loadings ≈ one day of observed flow.
   const laden24 = flow.flow_mbd;
 
@@ -143,33 +158,223 @@ function VesselsPanel() {
         {stat(darkC, "AIS-dark, imagery only", "var(--alert)")}
         {stat(laden24.toFixed(1), "mb loaded, last 24h")}
       </div>
-      {sel ? (
-        <div className="inner-card" aria-live="polite">
-          <div className="row" style={{ alignItems: "center" }}>
-            <span style={{ fontWeight: 600, color: "var(--text)" }}>{sel.name}</span>
-            <button type="button" className="icon-btn" aria-label="Close vessel detail" onClick={() => selectVessel(null)}>
-              <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
-                <path d="M1 1 L9 9 M9 1 L1 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-              </svg>
-            </button>
-          </div>
-          <div style={{ fontSize: 12, color: "var(--text-soft)" }}>
-            {sel.vesselClass} · {sel.laden ? "laden" : "ballast"} · {sel.position.sog_kn.toFixed(1)} kn
-          </div>
-          <div style={{ fontSize: 12, color: "var(--text-soft)" }}>
-            {sel.cargo} → {sel.destination}
-          </div>
-          <div style={{ fontSize: 12, color: sel.ais === "dark" ? "var(--alert)" : "var(--positive)" }}>
-            {sel.ais === "dark" ? "AIS dark · tracked from imagery" : "AIS live"}
-          </div>
-        </div>
+      <div className="row" style={{ fontSize: 12 }}>
+        <span>
+          <span className="dot" style={{ background: "var(--positive)", marginRight: 6 }} />
+          Live AIS in port geofences
+        </span>
+        <span className="mono">{aisConnected === false ? "stream offline" : aisCount}</span>
+      </div>
+      {selected ? (
+        <ShipDetail ship={selected} pinned />
       ) : (
         <p className="caption" style={{ margin: 0 }}>
-          Select a vessel on the imagery for cargo and destination. Flow = Σ laden cargo crossing the corridor gates.
+          Hover a ship for details; click or tap to pin it here. Corridor counts and flow come from the simulated feed; green
+          ships are live AIS from the collector.
         </p>
       )}
     </div>
   );
+}
+
+/* ── Ship detail (hover preview + pinned) ─────────────── */
+
+function ShipPreview({ ship }: { ship: ShipRef }) {
+  return (
+    <div className="panel" aria-live="polite">
+      <h2 className="heading">Vessel</h2>
+      <ShipDetail ship={ship} />
+      <p className="caption" style={{ margin: 0 }}>
+        Click or tap the ship to pin it.
+      </p>
+    </div>
+  );
+}
+
+function ago(seconds: number | null | undefined) {
+  if (seconds == null) return "never";
+  if (seconds < 90) return `${Math.round(seconds)}s ago`;
+  if (seconds < 5400) return `${Math.round(seconds / 60)} min ago`;
+  return `${(seconds / 3600).toFixed(1)} h ago`;
+}
+
+function ShipDetail({ ship, pinned = false }: { ship: ShipRef; pinned?: boolean }) {
+  const { sim, ais, ports, clock, selectShip } = useTidemark(
+    useShallow((s) => ({
+      sim: ship.source === "sim" ? s.vessels[ship.mmsi] : undefined,
+      ais: ship.source === "ais" ? s.ais.vessels[ship.mmsi] : undefined,
+      ports: selectGeography(s).ports,
+      clock: s.clock, // ms; ticks with the feed
+      selectShip: s.selectShip,
+    })),
+  );
+  const line = (text: string, color = "var(--text-soft)") => <div style={{ fontSize: 12, color }}>{text}</div>;
+  const name = sim?.name ?? (ais ? ais.name || `MMSI ${ais.mmsi}` : "Vessel no longer tracked");
+
+  return (
+    <div className="inner-card">
+      <div className="row" style={{ alignItems: "center" }}>
+        <span style={{ fontWeight: 600, color: "var(--text)" }}>{name}</span>
+        {pinned && (
+          <button type="button" className="icon-btn" aria-label="Close vessel detail" onClick={() => selectShip(null)}>
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+              <path d="M1 1 L9 9 M9 1 L1 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+          </button>
+        )}
+      </div>
+      {sim && (
+        <>
+          {line(`${sim.vesselClass} · ${sim.laden ? "laden" : "ballast"} · ${sim.position.sog_kn.toFixed(1)} kn`)}
+          {line(`${sim.cargo} → ${sim.destination}`)}
+          {line(
+            sim.ais === "dark" ? "AIS dark · tracked from imagery" : "AIS live",
+            sim.ais === "dark" ? "var(--alert)" : "var(--positive)",
+          )}
+          <span className="source-tag">Simulated corridor traffic</span>
+        </>
+      )}
+      {ais && (
+        <>
+          {line(`MMSI ${ais.mmsi}`)}
+          {line(
+            [
+              ais.speed_knots != null ? `${ais.speed_knots.toFixed(1)} kn` : "speed n/a",
+              ais.course != null ? `course ${Math.round(ais.course)}°` : null,
+            ]
+              .filter(Boolean)
+              .join(" · "),
+          )}
+          {ais.nav_status != null && line(NAV_STATUS[ais.nav_status] ?? `Nav status ${ais.nav_status}`)}
+          {line(`In ${ais.ports.map((id) => ports.find((p) => p.id === id)?.name ?? id).join(", ")}`)}
+          {line(
+            `Last position ${ago(Math.max(0, clock / 1000 - ais.observed_at))}${ais.stale ? " · stale" : ""}`,
+            ais.stale ? "var(--accent)" : "var(--positive)",
+          )}
+          <span className="source-tag live">Live AIS · AISstream via collector</span>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ── Ports (AIS collector) ────────────────────────────── */
+
+const STREAM_LABEL: Record<string, string> = {
+  receiving: "receiving positions",
+  subscribed: "subscribed, waiting for positions",
+  awaiting_subscription: "subscribing",
+  connecting: "connecting",
+  reconnecting: "reconnecting",
+  missing_api_key: "no AISstream key",
+};
+
+const PORT_STATUS: Record<string, { label: string; color: string }> = {
+  fresh_observations: { label: "fresh", color: "var(--positive)" },
+  stale_observations_only: { label: "stale only", color: "var(--accent)" },
+  no_observed_vessels: { label: "none observed", color: "var(--text-muted)" },
+};
+
+function CollectorLine({ collector }: { collector: CollectorState }) {
+  const { reachable, status } = collector;
+  const [color, text] =
+    reachable === null ? ["var(--ballast)", "Checking AIS collector…"]
+    : !reachable ? ["var(--alert)", "AIS collector offline"]
+    : status?.status === "receiving" ? ["var(--positive)", `AIS collector · last position ${ago(status.seconds_since_last_position)}`]
+    : ["var(--accent)", `AIS collector · ${STREAM_LABEL[status?.status ?? ""] ?? status?.status}`];
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--text-soft)" }} role="status">
+      <span className="dot" style={{ background: color }} />
+      {text}
+    </div>
+  );
+}
+
+function PortsPanel() {
+  const { loc, collector, selected, selectPort } = useTidemark(
+    useShallow((s) => ({
+      loc: selectGeography(s),
+      collector: s.collector,
+      selected: s.selectedPortId,
+      selectPort: s.selectPort,
+    })),
+  );
+  // Ports belong to a geography in Postgres (`ports.geography_id`).
+  const visible = loc.ports;
+  const byPort = collector.metrics?.by_port;
+
+  return (
+    <div className="panel">
+      <h2 className="heading">Port activity</h2>
+      <CollectorLine collector={collector} />
+      {collector.reachable === false && (
+        <p className="caption" style={{ margin: 0 }}>
+          Start it with <span className="mono">./dev.sh</span> from the repo root.
+        </p>
+      )}
+      {collector.status?.status === "missing_api_key" && (
+        <p className="caption" style={{ margin: 0 }}>
+          Set <span className="mono">AISSTREAM_API_KEY</span> in <span className="mono">.env</span> and restart to collect live
+          positions.
+        </p>
+      )}
+      {visible.length === 0 ? (
+        <p className="caption" style={{ margin: 0 }}>
+          No port geofences are configured for the {loc.name}. Add rows to the <span className="mono">ports</span> table
+          with <span className="mono">geography_id = &apos;{loc.id}&apos;</span>.
+        </p>
+      ) : (
+        <ul className="port-list">
+          {visible.map((p) => {
+            const m = byPort?.[p.id];
+            const st = m ? PORT_STATUS[m.data_status] : undefined;
+            return (
+              <li key={p.id}>
+                <button type="button" className="port-row" aria-pressed={selected === p.id} onClick={() => selectPort(p.id)}>
+                  <span className="row" style={{ alignItems: "baseline" }}>
+                    <span style={{ fontWeight: 600, color: "var(--text)" }}>{p.name}</span>
+                    {st && (
+                      <span className="mono" style={{ fontSize: 11, color: st.color }}>
+                        {st.label}
+                      </span>
+                    )}
+                  </span>
+                  {m ? (
+                    <span className="port-stats">
+                      <span>
+                        <span className="num">{m.active_vessels}</span> active
+                      </span>
+                      <span>
+                        <span className="num">{m.slow_vessels_under_1_knot}</span> &lt;1 kn
+                      </span>
+                      <span>
+                        <span className="num">{m.reported_anchored}</span> anchored
+                      </span>
+                      <span>
+                        <span className="num">{m.stale_vessels_in_area}</span> stale
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="caption mono" style={{ fontSize: 11 }}>
+                      {formatBounds(p.bounds_lat_lon)}
+                    </span>
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      <p className="caption" style={{ margin: 0 }}>
+        {collector.metrics?.note ?? "Observed activity only. Zero may mean no coverage."} Boxes are approximate discovery areas,
+        not official anchorage boundaries.
+      </p>
+    </div>
+  );
+}
+
+function formatBounds([[s, w], [n, e]]: readonly (readonly [number, number])[]) {
+  return `${s.toFixed(2)}–${n.toFixed(2)}°N · ${w.toFixed(2)}–${e.toFixed(2)}°E`;
 }
 
 /* ── Supply ───────────────────────────────────────────── */
@@ -178,8 +383,7 @@ const FC_W = 280;
 const FC_H = 140;
 
 function SupplyPanel() {
-  const { locationId, scenarioId } = useTidemark(useShallow((s) => ({ locationId: s.locationId, scenarioId: s.scenarioId })));
-  const loc = getLocation(locationId);
+  const { loc, scenarioId } = useTidemark(useShallow((s) => ({ loc: selectGeography(s), scenarioId: s.scenarioId })));
   const sc = getScenario(scenarioId);
 
   const fc = useMemo(() => {
@@ -262,8 +466,7 @@ function SupplyPanel() {
 /* ── CPI ──────────────────────────────────────────────── */
 
 function CpiPanel() {
-  const { outlook, locationId } = useTidemark(useShallow((s) => ({ outlook: s.outlook, locationId: s.locationId })));
-  const loc = getLocation(locationId);
+  const { outlook, loc } = useTidemark(useShallow((s) => ({ outlook: s.outlook, loc: selectGeography(s) })));
   const c = outlook.chain;
   const params = DEFAULT_MODEL_PARAMS;
   const motorPassThrough = params.components.find((k) => k.driver === "gasoline")?.passThrough1m ?? 0;
@@ -333,13 +536,21 @@ function CpiPanel() {
 const MCP_TOOLS = ["get_flow_estimate", "list_vessels", "run_scenario", "get_energy_cpi_outlook"];
 
 function ConnectPanel() {
-  const slug = useTidemark((s) => getLocation(s.locationId).slug);
+  const slug = useTidemark((s) => selectGeography(s).slug);
   const endpoints: [string, string, string][] = [
     ["GET", `/v1/flow/${slug}`, "var(--teal)"],
     ["GET", "/v1/vessels?zone=corridor", "var(--teal)"],
     ["GET", "/v1/cpi/energy?horizon=1m", "var(--teal)"],
     ["POST", "/v1/scenarios/run", "var(--accent)"],
     ["WSS", "/v1/stream · flow.* vessel.* cpi.*", "var(--positive)"],
+  ];
+  const collectorEndpoints: [string, string][] = [
+    ["GET", "/api/geographies"],
+    ["GET", "/api/ports?geography="],
+    ["GET", "/api/vessels?port="],
+    ["GET", "/api/metrics"],
+    ["GET", "/api/vessels/{mmsi}/history"],
+    ["SSE", "/api/stream · snapshot, vessel"],
   ];
   return (
     <div className="panel" style={{ gap: 16 }}>
@@ -378,7 +589,24 @@ function ConnectPanel() {
             </div>
           ))}
         </dl>
-        <div className="caption">Same events that drive this HUD, pushed in real time.</div>
+        <div className="caption">Same events that drive this HUD, pushed in real time. Planned; mocked today.</div>
+      </div>
+      <div className="section">
+        <div className="section-title">
+          <h3>AIS collector</h3>
+          <span className="mono caption" style={{ fontSize: 11 }}>
+            live · FastAPI + Postgres
+          </span>
+        </div>
+        <dl className="endpoints">
+          {collectorEndpoints.map(([method, path]) => (
+            <div key={path}>
+              <dt style={{ color: method === "SSE" ? "var(--positive)" : "var(--teal)" }}>{method}</dt>
+              <dd>{path}</dd>
+            </div>
+          ))}
+        </dl>
+        <div className="caption">Geographies, port geofences, port activity and live AIS ships come from here.</div>
       </div>
     </div>
   );

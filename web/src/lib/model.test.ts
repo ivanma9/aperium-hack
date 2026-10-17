@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { getLocation } from "@/config/locations";
 import { DEFAULT_MODEL_PARAMS } from "@/config/model";
 import { getScenario } from "@/config/scenarios";
+import { HORMUZ, SUEZ } from "@/test/fixtures";
 import { computeOutlook, forecastSupply, shockAt } from "./model";
 
-const hormuz = getLocation("hormuz");
+const hormuz = HORMUZ;
 const params = DEFAULT_MODEL_PARAMS;
 
 describe("computeOutlook", () => {
   it("matches the prototype at its opening state (Hormuz, Tension, r=0.93)", () => {
-    const o = computeOutlook({ location: hormuz, scenario: getScenario("elevated"), ratio: 0.93, eventsSinceShock: 30 }, params);
+    const o = computeOutlook({ geography: hormuz, scenario: getScenario("elevated"), ratio: 0.93, eventsSinceShock: 30 }, params);
     expect(o.flowMbd).toBeCloseTo(18.6, 6);
     expect(o.gapMbd).toBeCloseTo(1.4, 6);
     // Gap is within bypass capacity and the bypass is fully ramped → no net loss.
@@ -25,7 +25,7 @@ describe("computeOutlook", () => {
   });
 
   it("ramps the bypass from zero after a shock", () => {
-    const input = { location: hormuz, scenario: getScenario("closure"), ratio: 0.15 };
+    const input = { geography: hormuz, scenario: getScenario("closure"), ratio: 0.15 };
     const fresh = computeOutlook({ ...input, eventsSinceShock: 0 }, params);
     const half = computeOutlook({ ...input, eventsSinceShock: 7.5 }, params);
     const full = computeOutlook({ ...input, eventsSinceShock: 100 }, params);
@@ -37,7 +37,7 @@ describe("computeOutlook", () => {
   });
 
   it("damps the price response when flow runs above baseline", () => {
-    const o = computeOutlook({ location: hormuz, scenario: getScenario("base"), ratio: 1.02, eventsSinceShock: 30 }, params);
+    const o = computeOutlook({ geography: hormuz, scenario: getScenario("base"), ratio: 1.02, eventsSinceShock: 30 }, params);
     expect(o.gapMbd).toBeCloseTo(-0.4, 6);
     expect(o.bypassMbd).toBe(0);
     expect(o.netMbd).toBe(0);
@@ -46,14 +46,13 @@ describe("computeOutlook", () => {
   });
 
   it("scales the risk premium per location", () => {
-    const suez = getLocation("suez");
-    const o = computeOutlook({ location: suez, scenario: getScenario("closure"), ratio: 1, eventsSinceShock: 30 }, params);
+    const o = computeOutlook({ geography: SUEZ, scenario: getScenario("closure"), ratio: 1, eventsSinceShock: 30 }, params);
     expect(o.brentPct).toBeCloseTo(12 * 0.4, 6);
   });
 
   it("uses configurable coefficients", () => {
     const o = computeOutlook(
-      { location: hormuz, scenario: getScenario("base"), ratio: 0.9, eventsSinceShock: 0 },
+      { geography: hormuz, scenario: getScenario("base"), ratio: 0.9, eventsSinceShock: 0 },
       { ...params, brentPctPerMbd: 10 },
     );
     expect(o.brentPct).toBeCloseTo(2 * 10, 6);

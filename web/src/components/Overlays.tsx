@@ -1,13 +1,11 @@
 "use client";
 
 import { useShallow } from "zustand/react/shallow";
-import { getLocation, LOCATIONS } from "@/config/locations";
-import { signed, utcClock, utcHourMinute } from "@/lib/format";
+import { signed, utcClock } from "@/lib/format";
+import { selectGeography } from "@/store/tidemark";
 import { ScenarioSelect } from "./ScenarioSelect";
 import { Segmented } from "./Segmented";
 import { useTidemark, useTidemarkActions } from "./TidemarkProvider";
-
-const LOCATION_ITEMS = LOCATIONS.map((l) => ({ id: l.id, label: l.short }));
 
 export function Brand() {
   const { paused, togglePaused } = useTidemark(useShallow((s) => ({ paused: s.paused, togglePaused: s.togglePaused })));
@@ -30,17 +28,19 @@ export function Brand() {
 }
 
 export function LocationBar() {
-  const { locationId, clock, lastTopic } = useTidemark(
-    useShallow((s) => ({ locationId: s.locationId, clock: s.clock, lastTopic: s.lastTopic })),
+  const { geographies, geographyId, clock, lastTopic } = useTidemark(
+    useShallow((s) => ({ geographies: s.geographies, geographyId: s.geographyId, clock: s.clock, lastTopic: s.lastTopic })),
   );
-  const { switchLocation } = useTidemarkActions();
+  const { switchGeography } = useTidemarkActions();
+  // Geographies come from the backend (Postgres `geographies` table).
+  const items = geographies.map((g) => ({ id: g.id, label: g.short }));
   return (
     <>
       <Segmented
-        items={LOCATION_ITEMS}
-        value={locationId}
-        onChange={switchLocation}
-        label="Monitored location"
+        items={items}
+        value={geographyId}
+        onChange={switchGeography}
+        label="Monitored geography"
         className="pills"
       />
       <div className="ticker" aria-live="off">
@@ -51,8 +51,8 @@ export function LocationBar() {
 }
 
 export function OutcomeCard() {
-  const { outlook, scenarioId, locationId, flow } = useTidemark(
-    useShallow((s) => ({ outlook: s.outlook, scenarioId: s.scenarioId, locationId: s.locationId, flow: s.flow })),
+  const { outlook, scenarioId, geography, flow } = useTidemark(
+    useShallow((s) => ({ outlook: s.outlook, scenarioId: s.scenarioId, geography: selectGeography(s), flow: s.flow })),
   );
   const { runScenario } = useTidemarkActions();
   const pct = outlook.energy_pct;
@@ -75,7 +75,7 @@ export function OutcomeCard() {
       <div className="outcome-controls">
         <ScenarioSelect value={scenarioId} onChange={runScenario} />
         <span className="caption">
-          {flow.flow_mbd.toFixed(1)} mb/d observed · {getLocation(locationId).name}
+          {flow.flow_mbd.toFixed(1)} mb/d observed · {geography.name}
         </span>
       </div>
     </section>
@@ -83,13 +83,10 @@ export function OutcomeCard() {
 }
 
 export function HudToggle() {
-  const { hudVisible, toggleHud, tile } = useTidemark(
-    useShallow((s) => ({ hudVisible: s.hudVisible, toggleHud: s.toggleHud, tile: s.tile })),
-  );
-  const attribution = `${tile.provider} · ${utcHourMinute(tile.captured_at)} · CLOUD ${tile.cloud_pct}% · ${tile.gsd_m} m/px`;
+  const { hudVisible, toggleHud } = useTidemark(useShallow((s) => ({ hudVisible: s.hudVisible, toggleHud: s.toggleHud })));
   return (
     <div className="toggle">
-      <span className="attribution">{attribution}</span>
+      <MapAttribution />
       <button
         type="button"
         className="glass pill-btn hud-toggle"
@@ -110,5 +107,22 @@ export function HudToggle() {
         {hudVisible ? "Hide HUD" : "Show HUD"}
       </button>
     </div>
+  );
+}
+
+/** Required basemap credit (OpenFreeMap / OpenMapTiles / OpenStreetMap). Always visible. */
+export function MapAttribution({ className = "" }: { className?: string }) {
+  return (
+    <span className={`attribution ${className}`}>
+      <a href="https://openfreemap.org" target="_blank" rel="noreferrer">
+        OpenFreeMap
+      </a>{" "}
+      <a href="https://www.openmaptiles.org/" target="_blank" rel="noreferrer">
+        © OpenMapTiles
+      </a>{" "}
+      <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
+        © OpenStreetMap
+      </a>
+    </span>
   );
 }

@@ -1,5 +1,5 @@
 import { createStore } from "zustand/vanilla";
-import { getLocation, LOCATIONS } from "@/config/locations";
+import type { AisVessel, CollectorMetrics, CollectorStatus } from "@/lib/aperium/client";
 import type {
   CpiRecomputed,
   Direction,
@@ -10,82 +10,116 @@ import type {
   Snapshot,
   Vessel,
 } from "@/lib/feed/types";
+import { findBySlug, findGeography, type Geography } from "@/lib/geographies";
 
-export type ViewId = "flow" | "vessels" | "supply" | "cpi" | "connect";
+export type ViewId = "flow" | "vessels" | "ports" | "supply" | "cpi" | "connect";
 
-export interface VesselView extends Vessel {
-  /** Position jumped (lap wrap / new location), so don't animate this move. */
-  jumped: boolean;
+/** Ships come from two places: simulated corridor traffic (mock feed) and live AIS (collector). */
+export type ShipSource = "sim" | "ais";
+export interface ShipRef {
+  source: ShipSource;
+  mmsi: string;
+}
+
+/** Aperium collector status + metrics, polled over REST. `reachable: null` = not checked yet. */
+export interface CollectorState {
+  reachable: boolean | null;
+  status: CollectorStatus | null;
+  metrics: CollectorMetrics | null;
+}
+
+/** Live AIS vessels from the collector's SSE stream (Postgres NOTIFY). */
+export interface AisState {
+  /** null = not connected yet, false = disconnected (EventSource retries). */
+  connected: boolean | null;
+  vessels: Record<string, AisVessel>;
 }
 
 export interface TidemarkState {
-  locationId: string;
+  /** Monitored geographies from GET /api/geographies (Postgres `geographies` + `ports`). */
+  geographies: readonly Geography[];
+  geographyId: string;
   scenarioId: string;
   view: ViewId;
   hudVisible: boolean;
   paused: boolean;
-  selectedMmsi: string | null;
+  /** Pinned by click/tap; shown in the Vessels view. */
+  selected: ShipRef | null;
+  /** Under the pointer or keyboard focus; previewed in the info panel. */
+  hovered: ShipRef | null;
+  selectedPortId: string | null;
 
   clock: number;
   lastTopic: FeedTopic;
   tile: ImageryTile;
   flow: FlowEstimate;
   history: number[];
-  vessels: Record<string, VesselView>;
+  vessels: Record<string, Vessel>;
   vesselOrder: string[];
   outlook: CpiRecomputed;
+
+  collector: CollectorState;
+  ais: AisState;
 }
 
 export interface TidemarkActions {
   hydrate(snapshot: Snapshot): void;
   apply(event: FeedEvent): void;
-  setLocation(id: string): void;
+  setGeography(id: string): void;
   setScenario(id: string): void;
   setOutlook(outlook: CpiRecomputed): void;
   setView(view: ViewId): void;
   toggleHud(): void;
   togglePaused(): void;
-  selectVessel(mmsi: string | null): void;
+  selectShip(ref: ShipRef | null): void;
+  hoverShip(ref: ShipRef | null): void;
+  selectPort(id: string | null): void;
+  setCollector(collector: CollectorState): void;
+  aisSnapshot(vessels: AisVessel[]): void;
+  aisUpsert(vessel: AisVessel): void;
+  aisConnection(open: boolean): void;
 }
 
 export type TidemarkStore = TidemarkState & TidemarkActions;
 
+export const sameShip = (a: ShipRef | null, b: ShipRef | null) => !!a && !!b && a.source === b.source && a.mmsi === b.mmsi;
+
 /** Gate a vessel crosses on its way into the corridor. */
 const entryGate = (d: Direction) => (d === "outbound" ? "a" : "b");
 
-/** Share of the bbox width beyond which a position update counts as a jump. */
-const JUMP_FRACTION = 0.15;
-
-const slugToId = (slug: string) => LOCATIONS.find((l) => l.slug === slug)?.id;
-
-function fromSnapshot(s: Snapshot) {
+function fromSnapshot(geographies: readonly Geography[], s: Snapshot) {
   return {
-    locationId: slugToId(s.location) ?? s.location,
+    geographyId: findBySlug(geographies, s.location)?.id ?? geographies[0].id,
     scenarioId: s.scenario,
     clock: s.ts,
     tile: s.tile,
     flow: s.flow,
     history: s.history,
     outlook: s.outlook,
-    vessels: Object.fromEntries(s.vessels.map((v) => [v.mmsi, { ...v, jumped: true }])),
+    vessels: Object.fromEntries(s.vessels.map((v) => [v.mmsi, v])),
     vesselOrder: s.vessels.map((v) => v.mmsi),
   };
 }
 
-export function createTidemarkStore(initial: Snapshot) {
+export function createTidemarkStore(geographies: readonly Geography[], initial: Snapshot) {
   return createStore<TidemarkStore>()((set, get) => {
-    /** Events for another location are stale (in flight during a switch). */
-    const isCurrent = (slug: string) => getLocation(get().locationId).slug === slug;
+    /** Events for another geography are stale (in flight during a switch). */
+    const isCurrent = (slug: string) => findGeography(get().geographies, get().geographyId).slug === slug;
 
     return {
-      ...fromSnapshot(initial),
+      geographies,
+      ...fromSnapshot(geographies, initial),
       view: "flow",
       hudVisible: true,
       paused: false,
-      selectedMmsi: null,
+      selected: null,
+      hovered: null,
+      selectedPortId: null,
       lastTopic: "flow.estimate.updated",
+      collector: { reachable: null, status: null, metrics: null },
+      ais: { connected: null, vessels: {} },
 
-      hydrate: (snapshot) => set(fromSnapshot(snapshot)),
+      hydrate: (snapshot) => set(fromSnapshot(get().geographies, snapshot)),
 
       apply: (e) => {
         const s = get();
@@ -97,9 +131,7 @@ export function createTidemarkStore(initial: Snapshot) {
           case "ais.position.v2": {
             const v = s.vessels[e.data.mmsi];
             if (!v) return set(base);
-            const [w, , east] = getLocation(s.locationId).bbox;
-            const jumped = Math.abs(e.data.lon - v.position.lon) > (east - w) * JUMP_FRACTION;
-            return set({ ...base, vessels: { ...s.vessels, [v.mmsi]: { ...v, position: e.data, jumped } } });
+            return set({ ...base, vessels: { ...s.vessels, [v.mmsi]: { ...v, position: e.data } } });
           }
           case "vessel.gate.crossed": {
             const v = s.vessels[e.data.mmsi];
@@ -124,7 +156,13 @@ export function createTidemarkStore(initial: Snapshot) {
         }
       },
 
-      setLocation: (id) => set({ locationId: getLocation(id).id, selectedMmsi: null }),
+      setGeography: (id) =>
+        set((s) => ({
+          geographyId: findGeography(s.geographies, id).id,
+          selected: null,
+          hovered: null,
+          selectedPortId: null,
+        })),
       setScenario: (id) => set({ scenarioId: id }),
       setOutlook: (outlook) => {
         if (outlook.scenario === get().scenarioId && isCurrent(outlook.location)) set({ outlook });
@@ -132,13 +170,34 @@ export function createTidemarkStore(initial: Snapshot) {
       setView: (view) => set({ view }),
       toggleHud: () => set((s) => ({ hudVisible: !s.hudVisible })),
       togglePaused: () => set((s) => ({ paused: !s.paused })),
-      selectVessel: (mmsi) =>
+      selectShip: (ref) =>
         set((s) => ({
-          selectedMmsi: mmsi && s.selectedMmsi !== mmsi ? mmsi : null,
-          view: mmsi ? "vessels" : s.view,
+          selected: ref && !sameShip(s.selected, ref) ? ref : null,
+          view: ref ? "vessels" : s.view,
         })),
+      hoverShip: (ref) => set({ hovered: ref }),
+      selectPort: (id) =>
+        set((s) => ({
+          selectedPortId: id && s.selectedPortId !== id ? id : null,
+          view: id ? "ports" : s.view,
+        })),
+      setCollector: (collector) => set({ collector }),
+      aisSnapshot: (vessels) =>
+        set((s) => ({ ais: { ...s.ais, vessels: Object.fromEntries(vessels.map((v) => [v.mmsi, v])) } })),
+      aisUpsert: (vessel) =>
+        set((s) => (s.paused ? s : { ais: { ...s.ais, vessels: { ...s.ais.vessels, [vessel.mmsi]: vessel } } })),
+      aisConnection: (open) => set((s) => ({ ais: { ...s.ais, connected: open } })),
     };
   });
 }
 
 export type TidemarkStoreApi = ReturnType<typeof createTidemarkStore>;
+
+/** Current geography, from the store. */
+export const selectGeography = (s: TidemarkState) => findGeography(s.geographies, s.geographyId);
+
+/** Live AIS vessels inside the current geography's port geofences. */
+export function aisInGeography(s: TidemarkState): AisVessel[] {
+  const ids = new Set(selectGeography(s).ports.map((p) => p.id));
+  return Object.values(s.ais.vessels).filter((v) => v.ports.some((p) => ids.has(p)));
+}

@@ -106,20 +106,33 @@ export function FactorPanel() {
 
   return (
     <div className="fp">
-      <section className="glass fp-card panel" aria-label="Factors">
-        <Link href="/" className="src-link">← Back to map</Link>
-        <h1 className="heading">CPI factors</h1>
-        {f("eia_move") && <Toggle f={f("eia_move")!} value={!!vals.eia_move} onChange={set("eia_move")} />}
-        {f("release") && <Toggle f={f("release")!} value={!!vals.release} onChange={set("release")} />}
-        {sliders.map((id) => f(id) && <Slider key={id} f={f(id)!} value={num(id)} onChange={set(id)} />)}
+      <section className="glass fp-card fp-col" aria-label="Factors">
+        <div className="fp-head">
+          <h1 className="heading">CPI factors</h1>
+          <Link href="/" className="src-link">← Back to map</Link>
+        </div>
+        <div className="fp-toggles">
+          {f("eia_move") && <Toggle f={f("eia_move")!} value={!!vals.eia_move} onChange={set("eia_move")} />}
+          {f("release") && <Toggle f={f("release")!} value={!!vals.release} onChange={set("release")} />}
+        </div>
+        <div className="fp-sliders">
+          {sliders.map((id) => f(id) && <Slider key={id} f={f(id)!} value={num(id)} onChange={set(id)} />)}
+        </div>
         <p className="caption">Locked on: BLS anchor, crude response, pump pass-through.</p>
+      </section>
 
+      <section className="glass fp-card fp-col" aria-label="Chokepoints and region">
+        <label className="fp-ctl fp-region"><span>Region</span>
+          <select value={region} onChange={(e) => setRegion(e.target.value as RegionId | "all")}>
+            {cat.regions.map((r) => <option key={r.id} value={r.id}>{r.name}{r.baseline_status === "unavailable" ? " (no data)" : ""}</option>)}
+            <option value="all">Compare all</option>
+          </select></label>
         <h2 className="heading">Chokepoints</h2>
         {cat.chokepoints.map((k) => {
           const c = chokes[k.id];
           if (!c) return null;
           return (
-            <div key={k.id} className="fp-choke">
+            <div key={k.id} className={`fp-choke${c.on ? " is-on" : ""}`}>
               <label className="row">
                 <span>{k.name} <span className="caption">{k.flow_mbd} mb/d</span></span>
                 <input type="checkbox" checked={c.on} onChange={(e) => patch(k.id, { on: e.target.checked })} />
@@ -144,22 +157,16 @@ export function FactorPanel() {
             </div>
           );
         })}
-
-        <label className="fp-ctl"><span>Region</span>
-          <select value={region} onChange={(e) => setRegion(e.target.value as RegionId | "all")}>
-            {cat.regions.map((r) => <option key={r.id} value={r.id}>{r.name}{r.baseline_status === "unavailable" ? " (no data)" : ""}</option>)}
-            <option value="all">Compare all</option>
-          </select></label>
       </section>
 
-      <section className="fp-out panel" aria-live="polite">
-        {err && <div className="glass fp-card" role="alert">{err}</div>}
+      <section className="glass fp-card fp-col fp-out" aria-live="polite" aria-label="Results">
+        {err && <div className="fp-warn" role="alert">{err}</div>}
         {res && main && (
           <>
-            <div className="glass fp-card panel">
+            <div className="fp-result">
               <div className="caption">Energy CPI nowcast, {main.name}{main.baseline.nowcast_period ? ` (${main.baseline.nowcast_period})` : ""}</div>
-              <div className="num" style={{ fontSize: 40 }}>{idx(main.baseline.nowcast_cpi_energy)}</div>
-              <div className="rows">
+              <div className="num fp-big">{idx(main.baseline.nowcast_cpi_energy)}</div>
+              <div className="rows fp-rows">
                 <div className="row"><span>Month over month</span><span className="mono">{pct(main.baseline.nowcast_mom_pct)}</span></div>
                 {cur ? (
                   <>
@@ -187,7 +194,7 @@ export function FactorPanel() {
               )}
               {res.supply.chokepoints.filter((k) => k.status !== "ok").map((k) => <div key={k.id} className="fp-warn">{k.name}: {k.reason}</div>)}
               {main.contributions.length > 0 && (
-                <div className="bars">
+                <div className="bars fp-bars">
                   <div className="caption">Contributions, current month (energy CPI %, central)</div>
                   {main.contributions.map((c) => (
                     <div key={c.id}>
@@ -203,28 +210,27 @@ export function FactorPanel() {
             </div>
 
             {res.regions.length > 1 && (
-              <div className="glass fp-card">
-                <table className="fp-table">
-                  <thead><tr><th>Region</th><th>Status</th><th>Nowcast</th><th>MoM</th><th>Shock {main.months?.current_month.period ?? "now"}</th><th>Shock {main.months?.next_month.period ?? "next"}</th></tr></thead>
-                  <tbody>
-                    {res.regions.map((r) => (
-                      <tr key={r.id}>
-                        <td>{r.name}</td><td>{r.baseline.status}</td>
-                        <td className="mono">{idx(r.baseline.nowcast_cpi_energy)}</td>
-                        <td className="mono">{pct(r.baseline.nowcast_mom_pct)}</td>
-                        <td className="mono">{pct(r.months?.current_month.central.energy_cpi_shock_pct)}</td>
-                        <td className="mono">{pct(r.months?.next_month.central.energy_cpi_shock_pct)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <table className="fp-table">
+                <thead><tr><th>Region</th><th>Status</th><th>Nowcast</th><th>MoM</th><th>Shock {main.months?.current_month.period ?? "now"}</th><th>Shock {main.months?.next_month.period ?? "next"}</th></tr></thead>
+                <tbody>
+                  {res.regions.map((r) => (
+                    <tr key={r.id}>
+                      <td>{r.name}</td><td>{r.baseline.status}</td>
+                      <td className="mono">{idx(r.baseline.nowcast_cpi_energy)}</td>
+                      <td className="mono">{pct(r.baseline.nowcast_mom_pct)}</td>
+                      <td className="mono">{pct(r.months?.current_month.central.energy_cpi_shock_pct)}</td>
+                      <td className="mono">{pct(r.months?.next_month.central.energy_cpi_shock_pct)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             )}
 
-            <div className="glass fp-card">
+            <details className="fp-assume">
+              <summary>Assumptions ({res.assumptions.length}) · uncalibrated</summary>
               <div className="caption">Uncalibrated estimate (calibrated: false). As of {res.as_of_utc}.</div>
               <ul className="fp-list">{res.assumptions.map((a, i) => <li key={i} className="caption">{a}</li>)}</ul>
-            </div>
+            </details>
           </>
         )}
       </section>

@@ -7,3 +7,6 @@ __pycache__/
 .pytest_cache/
 data/
 *.egg-info/
+HANDOFF.md
+Main.dc.html
+Tidemark-preview.html

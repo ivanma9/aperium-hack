@@ -5,7 +5,15 @@ Fujairah, Shahid Rajaee, Khor Fakkan, and Jebel Ali areas through one connection
 Includes Class A and Class B reports, durable position history,
 latest positions per MMSI, stale-position filtering, and automatic reconnects.
 
-## Run
+## Run everything (backend + Tidemark frontend)
+
+```sh
+./dev.sh   # API on :8000, web on :3000; Ctrl-C stops both
+```
+
+On first run it creates `.env` from `.env.example`, sets up the backend (with uv if available, otherwise `.venv`) and runs `bun install` in `web/`. Override the ports with `BACKEND_PORT` / `FRONTEND_PORT`. Requires Python 3.9+ and Bun.
+
+## Run the backend only
 
 Python 3.11+ recommended (3.9+ supported). From this directory:
 

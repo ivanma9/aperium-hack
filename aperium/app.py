@@ -21,6 +21,11 @@ from aperium.recorder import raw_path
 from aperium.regions import REGIONS
 from aperium.tracking import POSITION_TYPES, bounding_boxes, normalize
 
+try:  # MCP SDK needs Python 3.10+; without it the collector runs without /mcp.
+    from aperium.mcp_server import mcp as mcp_server
+except ImportError:  # pragma: no cover
+    mcp_server = None
+
 log = logging.getLogger("aperium")
 STREAM_URL = "wss://stream.aisstream.io/v0/stream"
 # SSE comment sent when idle so proxies keep the connection open.
@@ -126,6 +131,11 @@ def sse(event, data):
 
 
 def create_app(database_url=None, api_key=None, stream_url=STREAM_URL, record=None):
+    # MCP over Streamable HTTP at /mcp (stateless, JSON responses). Built per app: each
+    # streamable_http_app() call creates the session manager its lifespan must run.
+    mcp_app = mcp_server.streamable_http_app(stateless_http=True, json_response=True) if mcp_server else None
+    mcp_sessions = mcp_server.session_manager if mcp_server else None
+
     @asynccontextmanager
     async def lifespan(app):
         load_dotenv()
@@ -145,7 +155,11 @@ def create_app(database_url=None, api_key=None, stream_url=STREAM_URL, record=No
         if key.strip():
             tasks.append(asyncio.create_task(collect(app, key, stream_url)))
         try:
-            yield
+            if mcp_sessions:
+                async with mcp_sessions.run():
+                    yield
+            else:
+                yield
         finally:
             for task in tasks:
                 task.cancel()
@@ -252,6 +266,12 @@ def create_app(database_url=None, api_key=None, stream_url=STREAM_URL, record=No
 
         return StreamingResponse(events(), media_type="text/event-stream",
                                  headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"})
+
+
+    # Last: Mount("/") matches every path, so it must come after all API routes.
+    # The MCP app serves /mcp itself and 404s anything else.
+    if mcp_app:
+        app.mount("/", mcp_app, name="mcp")
 
     return app
 

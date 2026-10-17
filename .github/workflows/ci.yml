@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (pytest + Postgres)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+      - name: Create .env with a throwaway Postgres password
+        # Generated per run, so no credential lives in the repo or the workflow.
+        run: |
+          cp .env.example .env
+          sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$(openssl rand -hex 24)/" .env
+      - name: Start Postgres (compose.yaml; also creates aperium_test)
+        run: docker compose up -d --wait db
+      - name: Install collector + dev deps (uv.lock)
+        run: uv sync --locked
+      - name: Run tests
+        run: uv run pytest -q
+
+  web:
+    name: Web (typecheck, lint, vitest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Typecheck (generates Next route types first)
+        run: bun run typecheck
+      - name: Lint
+        run: bun run lint
+      - name: Test
+        run: bun run test

@@ -533,10 +533,26 @@ function CpiPanel() {
 
 /* ── API / MCP ────────────────────────────────────────── */
 
-const MCP_TOOLS = ["get_flow_estimate", "list_vessels", "run_scenario", "get_energy_cpi_outlook"];
+/** Tools served by aperium/mcp_server.py (Streamable HTTP at the collector's /mcp, or stdio). */
+const MCP_TOOLS = [
+  "list_geographies",
+  "get_collector_status",
+  "list_vessels",
+  "get_port_metrics",
+  "get_vessel_history",
+  "list_regions",
+  "get_flow_estimate",
+  "list_region_tankers",
+  "get_region_events",
+  "get_energy_cpi_outlook",
+  "run_scenario",
+];
 
 function ConnectPanel() {
-  const slug = useTidemark((s) => selectGeography(s).slug);
+  const { slug, reachable } = useTidemark(
+    useShallow((s) => ({ slug: selectGeography(s).slug, reachable: s.collector.reachable })),
+  );
+  const mcpColor = reachable ? "var(--positive)" : reachable === false ? "var(--alert)" : "var(--ballast)";
   const endpoints: [string, string, string][] = [
     ["GET", `/v1/flow/${slug}`, "var(--teal)"],
     ["GET", "/v1/vessels?zone=corridor", "var(--teal)"],
@@ -561,13 +577,14 @@ function ConnectPanel() {
       <div className="section">
         <div className="section-title">
           <h3>MCP server</h3>
-          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--positive)" }}>
-            <span className="dot" style={{ width: 6, height: 6, background: "var(--positive)" }} />
-            online
+          {/* The MCP server is mounted on the collector, so it's up exactly when the collector is. */}
+          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: mcpColor }}>
+            <span className="dot" style={{ width: 6, height: 6, background: mcpColor }} />
+            {reachable ? "online" : reachable === false ? "offline" : "checking"}
           </span>
         </div>
-        <div className="code-box">https://[your-host]/mcp</div>
-        <div className="caption">Streamable HTTP · OAuth</div>
+        <div className="code-box">http://127.0.0.1:8000/mcp</div>
+        <div className="caption">Streamable HTTP or stdio · local, no auth yet</div>
         <ul className="chips" aria-label="MCP tools">
           {MCP_TOOLS.map((t) => (
             <li key={t}>{t}</li>

@@ -54,7 +54,7 @@ async def health():
 
 
 @router.get("/api/schema/{name}")
-async def schema(name: Literal["regions", "vessels", "event", "metrics", "sentinel", "cpi_nowcast", "cpi_scenario"]):
+async def schema(name: Literal["regions", "vessels", "event", "metrics", "sentinel", "cpi_nowcast", "cpi_scenario", "cpi_factors", "cpi_custom"]):
     return SCHEMAS[name]
 
 
@@ -104,6 +104,46 @@ async def cpi_scenario(disruption: float = Query(..., ge=0, le=1, description="F
     """What-if shock from the cached baseline (no network); starts now. Shape: schema 'cpi_scenario'."""
     from aperium import cpi_nowcast
     return cpi_nowcast.scenario(disruption, days, OUT)
+
+
+@router.get("/api/cpi/factors")
+@router.get("/cpi/factors", include_in_schema=False)
+async def cpi_factors_catalog():
+    """Controls, defaults and region data status for /api/cpi/custom. Shape: schema 'cpi_factors'."""
+    from aperium import cpi_factors
+    return cpi_factors.catalog(OUT)
+
+
+Ids = Literal["hormuz", "malacca", "bab_el_mandeb", "suez"]
+def Frac(): return Query(None, ge=0, le=1)
+def Byp(): return Query(None, ge=0, le=25, description="mb/d")
+
+
+@router.get("/api/cpi/custom")
+@router.get("/cpi/custom", include_in_schema=False)
+async def cpi_custom(
+    chokepoints: str = Query("hormuz", description="Comma-separated: hormuz,malacca,bab_el_mandeb,suez"),
+    region: Literal["national", "northeast", "midwest", "south", "west", "all"] = "national",
+    days: Optional[float] = Query(None, ge=1, le=90), gasoline_share: Optional[float] = Query(None, ge=0.2, le=0.8),
+    eia_move: bool = True, release: bool = True, release_mbd: Optional[float] = Query(None, ge=0, le=4),
+    release_scale: Optional[float] = Query(None, ge=0, le=1), sensitivity_central: Optional[float] = Query(None, ge=1, le=20),
+    pass_through: Optional[float] = Query(None, ge=0, le=1), lag_days: Optional[float] = Query(None, ge=0, le=30),
+    baseline_transits: Optional[float] = Query(None, ge=10, le=30),
+    hormuz_source: Literal["live", "manual"] = "manual", hormuz_fraction: Optional[float] = Frac(), hormuz_bypass_mbd: Optional[float] = Byp(),
+    malacca_fraction: Optional[float] = Frac(), malacca_bypass_mbd: Optional[float] = Byp(),
+    bab_el_mandeb_fraction: Optional[float] = Frac(), bab_el_mandeb_bypass_mbd: Optional[float] = Byp(),
+    suez_fraction: Optional[float] = Frac(), suez_bypass_mbd: Optional[float] = Byp(),
+):
+    """Custom energy-CPI scenario from cached baselines (no network). Shape: schema 'cpi_custom'."""
+    from aperium import cpi_factors
+    ids = [x for x in chokepoints.split(",") if x]
+    if bad := [x for x in ids if x not in Ids.__args__]:
+        raise HTTPException(422, f"unknown chokepoints: {bad}")
+    loc = locals()
+    cp = {f"{i}_{k}": v for i in Ids.__args__ for k in ("fraction", "bypass_mbd") if (v := loc[f"{i}_{k}"]) is not None}
+    p = {k: loc[k] for k in ("region", "days", "gasoline_share", "eia_move", "release", "release_mbd", "release_scale",
+                             "sensitivity_central", "pass_through", "lag_days", "baseline_transits") if loc[k] is not None}
+    return cpi_factors.custom({**p, "chokepoints": ids, "hormuz_source": hormuz_source, **cp}, OUT)
 
 
 app.include_router(router)

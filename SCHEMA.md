@@ -1,6 +1,6 @@
 # Output contract — tanker monitor backend
 
-**schema_version: 2.0.0** (breaking changes from 1.0.0 — see the changelog at the bottom)
+**schema_version: 2.1.0** (breaking changes from 1.0.0 — see the changelog at the bottom)
 
 Everything the backend publishes, for the frontend to consume. Machine-readable JSON Schemas
 (draft 2020-12) are in [`schema/`](schema/); they are generated from `aperium/contract.py`, the
@@ -121,6 +121,25 @@ Sentinel-1 passes Corpus Christi about every 12 days; Hormuz has no radar pipeli
 - `assumptions[]` (plain-English strings — please show them), `sources[]` (`name`, `series`,
   `fetched_utc`, `status`).
 
+## CPI factor picker (computed on request, not files)
+
+Cache-only (no network); `aperium.cpi_nowcast` refreshes the regional BLS/EIA caches every run. Every
+response has the envelope (`schema_version`, `as_of_utc`, `calibrated: false`).
+
+- `GET /api/cpi/factors` (`cpi_factors`) — `factors[]` (`id`, `label`, `kind` toggle|slider|locked,
+  `default`, `min`, `max`, `step`, `unit`, `available`, `reason` shown when disabled), `chokepoints[]`
+  (`flow_mbd`, `default_bypass_mbd`, `live_available`, `live_reason`), `regions[]` (BLS/EIA series,
+  `baseline_status`, `data_period`).
+- `GET /api/cpi/custom?...` (`cpi_custom`) — query: `chokepoints=hormuz,suez` (ids `hormuz`, `malacca`,
+  `bab_el_mandeb`, `suez`), `<id>_fraction` 0-1, `<id>_bypass_mbd` 0-25, `hormuz_source=live|manual`,
+  `region=national|northeast|midwest|south|west|all`, `days` 1-90, `gasoline_share` 0.2-0.8,
+  `eia_move`, `release`, `release_mbd` 0-4, `release_scale` 0-1, `sensitivity_central` 1-20,
+  `pass_through` 0-1, `lag_days` 0-30, `baseline_transits` 10-30. Returns `inputs`, `supply`
+  (per-chokepoint `net_mbd`, `status`/`reason`, total net loss after release, `overlap_warning` and
+  `net_supply_loss_lower_bound_mbd`), `regions[]` (`baseline`, `months` in the shock-block shape or null
+  when the region has no data, `contributions[]` in central-case energy-CPI points), `assumptions[]`,
+  `sources[]`. A live Hormuz request without usable data contributes 0 and says so in `status`/`reason`.
+
 ## Regions
 
 Zones are approximate, hand-placed from charts (see `zones.yaml`, check map
@@ -134,3 +153,4 @@ anchorage), Hormuz `[[24.90,54.90],[27.30,57.20]]` (adds Fujairah and Jebel Ali)
 | --- | --- | --- |
 | 1.0.0 | 2026-10-17 | Initial contract. |
 | 2.0.0 | 2026-10-17 | Design review. **metrics.json:** removed `crossings_last_hour`; added `crossings` (24h/3d/7d windows with Poisson 90 % intervals), `laden_out_daily`, `coverage_status`, `coverage`. **cpi_nowcast.json:** added top-level `coverage_status`; `hormuz_live` rewritten (`status`, laden-outbound rates with intervals, nullable `disruption_fraction`, `days_since_drop`, `recovery_trend`, `projection`; removed `method`, `crossings_24h`, `baseline_crossings_24h`, `scenarios`); shock blocks gained `days`, `start_utc`, `bypass_capacity_mbd` and replaced `scenarios[]` with `months.current_month` / `months.next_month` × low/central/high; added `scenario_grid`. **New:** `GET /api/cpi/scenario` (`cpi_scenario` schema). Unchanged: regions, vessels, events, sentinel. |
+| 2.1.0 | 2026-10-17 | **New:** `GET /api/cpi/factors` (`cpi_factors`) and `GET /api/cpi/custom` (`cpi_custom`), the CPI factor picker. No change to existing files. |

@@ -9,6 +9,7 @@ import json
 import os
 import calendar
 import statistics
+import threading
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -25,7 +26,16 @@ BLS_URL = "https://api.bls.gov/publicAPI/v2/timeseries/data/"
 BLS_ENERGY, BLS_GASOLINE = "CUUR0000SA0E", "CUUR0000SETB01"
 EIA_URL = "https://api.eia.gov/v2/petroleum/pri/gnd/data/"
 EIA_SERIES = "EMM_EPMR_PTE_NUS_DPG"
-EIA_MISSING = "missing_key: get a free key at https://www.eia.gov/opendata/"
+# region -> (BLS energy, BLS gasoline, EIA weekly retail regular). PADDs only approximate census regions.
+REGION_SERIES = {
+    "national": (BLS_ENERGY, BLS_GASOLINE, EIA_SERIES),
+    "northeast": ("CUUR0100SA0E", "CUUR0100SETB01", "EMM_EPMR_PTE_R10_DPG"),
+    "midwest": ("CUUR0200SA0E", "CUUR0200SETB01", "EMM_EPMR_PTE_R20_DPG"),
+    "south": ("CUUR0300SA0E", "CUUR0300SETB01", "EMM_EPMR_PTE_R30_DPG"),
+    "west": ("CUUR0400SA0E", "CUUR0400SETB01", "EMM_EPMR_PTE_R50_DPG"),
+}
+_REGIONS_LOCK, _regions_thread = threading.Lock(), None
+EIA_MISSING ="missing_key: get a free key at https://www.eia.gov/opendata/"
 
 
 def _iso(dt):
@@ -68,8 +78,9 @@ def _cached(name, fetch, now, ttl_h, offline, cache_dir):
         return None, None, f"error: {e}"
 
 
-def fetch_bls():
-    r = requests.post(BLS_URL, json={"seriesid": [BLS_ENERGY, BLS_GASOLINE]}, timeout=30)
+def _bls_latest(series):
+    """POST to BLS; {series_id: {value, period}} for the latest monthly print of each series returned."""
+    r = requests.post(BLS_URL, json={"seriesid": series}, timeout=30)
     r.raise_for_status()
     j = r.json()
     if j.get("status") != "REQUEST_SUCCEEDED":
@@ -80,9 +91,21 @@ def fetch_bls():
         if rows:
             d = max(rows, key=lambda d: (int(d["year"]), d["period"]))
             out[s["seriesID"]] = {"value": float(d["value"]), "period": f"{d['year']}-{d['period'][1:]}"}
+    return out, j
+
+
+def fetch_bls():
+    out, j = _bls_latest([BLS_ENERGY, BLS_GASOLINE])
     if BLS_ENERGY not in out:
         raise RuntimeError("BLS: no data returned for " + BLS_ENERGY +
                            ("; " + "; ".join(j["message"]) if j.get("message") else ""))
+    return out
+
+
+def fetch_bls_regions():
+    out, j = _bls_latest([s for r in REGION_SERIES.values() for s in r[:2]])
+    if not out:
+        raise RuntimeError("BLS: no regional data returned" + ("; " + "; ".join(j["message"]) if j.get("message") else ""))
     return out
 
 
@@ -95,6 +118,25 @@ def make_fetch_eia(key):
             raise RuntimeError(f"EIA HTTP {r.status_code}: {r.text[:300].replace(key, '***')}")
         rows = r.json()["response"]["data"]
         return [{"period": d["period"], "value": float(d["value"])} for d in rows if d.get("value") is not None]
+    return fetch
+
+
+def make_fetch_eia_regions(key, now):
+    """{series: [{period, value}]} for the regional retail series. Multi-series ignores `length`: filter by `start`. EIA takes ~1 min for this query."""
+    def fetch():
+        params = {"api_key": key, "frequency": "weekly", "data[0]": "value", "start": (now - timedelta(days=120)).date().isoformat(),
+                  "facets[series][]": [r[2] for r in REGION_SERIES.values()], "sort[0][column]": "period",
+                  "sort[0][direction]": "desc", "length": 5000}
+        r = requests.get(EIA_URL, params=params, timeout=120)
+        if not r.ok:
+            raise RuntimeError(f"EIA HTTP {r.status_code}: {r.text[:300].replace(key, '***')}")
+        out = {}
+        for d in r.json()["response"]["data"]:
+            if d.get("value") is not None:
+                out.setdefault(d["series"], []).append({"period": d["period"], "value": float(d["value"])})
+        if not out:
+            raise RuntimeError("EIA: no regional rows returned")
+        return out
     return fetch
 
 
@@ -169,20 +211,15 @@ def _overlap_days(a0, a1, b0, b1):
     return max(0.0, (min(a1, b1) - max(a0, b0)).total_seconds() / 86400)
 
 
-def shock(fraction, days, start, cfg, base, now):
-    """SHOCK object (contract) for a disruption `fraction` lasting `days` from `start`.
+def shock_months(net, days, start, cfg, base, now):
+    """`months` block for a total net supply loss `net` (mb/d) lasting `days` from `start`.
 
     Price-shock magnitude does not depend on duration; duration only sets how many elevated
     pump days fall in the current and next calendar month (after the pass-through lag).
     """
-    h, off = cfg["hormuz"], cfg["offsets"]
     share = base["gasoline_share_of_energy"]
     gas_price = base["retail_gasoline_this_month_usd_gal"] or cfg["reference_gasoline_usd_gal"]
     nowcast = base["nowcast_cpi_energy"]
-    at_risk = fraction * h["flow_mbd"]
-    bypass = off["bypass_capacity_mbd"]
-    net = max(0.0, at_risk - bypass)
-    net = max(0.0, net - off["strategic_release_mbd"] * off.get("scale", 1.0))
     pct_lost = net / cfg["global_demand_mbd"] * 100
     crude = {c: pct_lost * cfg["sensitivity_usd_bbl_per_pct"][c] for c in CASES}
     gas = {c: crude[c] / 42 * cfg["gasoline_pass_through"] for c in CASES}
@@ -205,9 +242,19 @@ def shock(fraction, days, start, cfg, base, now):
                      "energy_cpi_shock_pct": round(pct, 5),
                      "energy_cpi_index": None if nowcast is None else round(nowcast * (1 + pct / 100), 3)}
         months[key] = mo
+    return months
+
+
+def shock(fraction, days, start, cfg, base, now):
+    """SHOCK object (contract) for a Hormuz disruption `fraction` lasting `days` from `start`."""
+    h, off = cfg["hormuz"], cfg["offsets"]
+    at_risk = fraction * h["flow_mbd"]
+    bypass = off["bypass_capacity_mbd"]
+    net = max(0.0, at_risk - bypass)
+    net = max(0.0, net - off["strategic_release_mbd"] * off.get("scale", 1.0))
     return {"disruption_fraction": round(fraction, 4), "days": float(days), "start_utc": _iso(start),
             "supply_at_risk_mbd": round(at_risk, 3), "bypass_capacity_mbd": float(bypass),
-            "net_supply_loss_mbd": round(net, 3), "months": months}
+            "net_supply_loss_mbd": round(net, 3), "months": shock_months(net, days, start, cfg, base, now)}
 
 
 def scenario_grid(cfg, base, now):
@@ -348,6 +395,28 @@ def build(out_dir, now=None, offline=False, cfg=None, fetchers=None, cache_dir=N
     else:
         eia, eia_ts, eia_st = None, None, EIA_MISSING
 
+    # Regional caches feed /api/cpi/custom only; failures are swallowed by _cached and never touch this document.
+    inj = bool(fetchers)
+    fb = fetchers.get("bls_regions") or (None if inj else fetch_bls_regions)
+    fe = fetchers.get("eia_regions") or (make_fetch_eia_regions(key, now) if key and not inj else None)
+    jobs = [(name, fn) for name, fn in (("bls_regions", fb), ("eia_regions", fe)) if fn]
+
+    def refresh():
+        if not _REGIONS_LOCK.acquire(blocking=False):
+            return  # a previous refresh is still running
+        try:
+            for name, fn in jobs:
+                _cached(name, fn, now, ttl, offline, cache_dir)
+        finally:
+            _REGIONS_LOCK.release()
+    # EIA takes ~1 min for the regional query; aperium.run calls build() inline, so don't block its AIS loop.
+    global _regions_thread
+    if inj or offline:
+        refresh()
+    else:
+        _regions_thread = threading.Thread(target=refresh, daemon=True)
+        _regions_thread.start()
+
     base = compute_baseline(bls, eia, cfg, now)
     h, off, ri = cfg["hormuz"], cfg["offsets"], cfg["relative_importance"]
     sens = cfg["sensitivity_usd_bbl_per_pct"]
@@ -413,6 +482,8 @@ def main():
     ap.add_argument("--offline", action="store_true")
     a = ap.parse_args()
     doc = write(Path(a.out), offline=a.offline)
+    if _regions_thread:
+        _regions_thread.join()  # CLI: let the regional cache refresh finish before exiting
     print(json.dumps({"coverage_status": doc["coverage_status"], "baseline": doc["baseline"], "sources": doc["sources"],
                       "scenario": doc["hormuz_scenario"], "live": doc["hormuz_live"]}, indent=2))
 

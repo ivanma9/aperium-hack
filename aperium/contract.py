@@ -6,7 +6,7 @@ Bump SCHEMA_VERSION and note it in SCHEMA.md on any change.
 import json
 from pathlib import Path
 
-SCHEMA_VERSION = "2.0.0"
+SCHEMA_VERSION = "2.1.0"
 
 TS = {"type": "string", "format": "date-time", "description": "UTC ISO-8601, e.g. 2026-10-17T19:20:00Z"}
 NTS = {"type": ["string", "null"], "format": "date-time"}
@@ -133,18 +133,20 @@ SHOCK = {
     "months": MONTHS,
 }
 
+BASELINE = {
+    "cpi_energy_last": NNUM, "cpi_energy_period": {**NSTR, "description": "YYYY-MM of the last official print"},
+    "cpi_gasoline_last": NNUM,
+    "gasoline_share_of_energy": NUM, "gasoline_share_source": {"type": "string", "enum": ["bls", "fallback"]},
+    "retail_gasoline_this_month_usd_gal": NNUM, "retail_gasoline_last_month_usd_gal": NNUM,
+    "retail_gasoline_mom_pct": NNUM,
+    "nowcast_period": NSTR, "nowcast_cpi_energy": NNUM, "nowcast_mom_pct": NNUM,
+    "status": {"type": "string", "enum": ["ok", "partial", "unavailable"]},
+}
+
 CPI = _obj({
     **ENVELOPE,
     "coverage_status": COVERAGE_STATUS,
-    "baseline": _obj({
-        "cpi_energy_last": NNUM, "cpi_energy_period": {**NSTR, "description": "YYYY-MM of the last official print"},
-        "cpi_gasoline_last": NNUM,
-        "gasoline_share_of_energy": NUM, "gasoline_share_source": {"type": "string", "enum": ["bls", "fallback"]},
-        "retail_gasoline_this_month_usd_gal": NNUM, "retail_gasoline_last_month_usd_gal": NNUM,
-        "retail_gasoline_mom_pct": NNUM,
-        "nowcast_period": NSTR, "nowcast_cpi_energy": NNUM, "nowcast_mom_pct": NNUM,
-        "status": {"type": "string", "enum": ["ok", "partial", "unavailable"]},
-    }),
+    "baseline": _obj(BASELINE),
     "hormuz_live": _obj({
         "status": {"type": "string", "enum": ["ok", "data_gap", "no_data"],
                    "description": "Only ok carries a disruption estimate; data_gap and no_data leave it null"},
@@ -180,8 +182,67 @@ CPI = _obj({
 SCENARIO_RESPONSE = _obj({**ENVELOPE, **SHOCK, "label": {"type": "string"}, "baseline_status": {"type": "string"}},
                          description="GET /api/cpi/scenario?disruption=&days= (computed on request, not a file)")
 
+CHOKEPOINT_IDS = {"type": "string", "enum": ["hormuz", "malacca", "bab_el_mandeb", "suez"]}
+REGION_IDS = {"type": "string", "enum": ["national", "northeast", "midwest", "south", "west"]}
+SERIES = _obj({"bls_energy": {"type": "string"}, "bls_gasoline": {"type": "string"}, "eia_gasoline": {"type": "string"}})
+
+CPI_FACTORS = _obj({
+    **ENVELOPE,
+    "factors": {"type": "array", "items": _obj({
+        "id": {"type": "string"}, "label": {"type": "string"}, "kind": {"type": "string", "enum": ["toggle", "slider", "locked"]},
+        "default": {"type": ["number", "boolean", "null"]}, "min": NNUM, "max": NNUM, "step": NNUM, "unit": NSTR,
+        "available": {"type": "boolean"}, "reason": {**NSTR, "description": "Why the control is disabled; null when available"},
+    })},
+    "chokepoints": {"type": "array", "items": _obj({
+        "id": CHOKEPOINT_IDS, "name": {"type": "string"}, "flow_mbd": NUM, "default_bypass_mbd": NUM, "default_fraction": NUM,
+        "live_available": {"type": "boolean"}, "live_reason": NSTR,
+    })},
+    "regions": {"type": "array", "items": _obj({
+        "id": REGION_IDS, "name": {"type": "string"}, "series": SERIES,
+        "baseline_status": BASELINE["status"], "data_period": {**NSTR, "description": "YYYY-MM of the last BLS energy print"},
+    })},
+}, description="GET /api/cpi/factors: controls and defaults for GET /api/cpi/custom (computed on request)")
+
+CONTRIBUTION = _obj({
+    "id": {"type": "string"}, "label": {"type": "string"},
+    "kind": {"type": "string", "enum": ["baseline", "chokepoint", "bypass", "release"]},
+    "current_month_pct": {**NUM, "description": "Energy-CPI percent points, central case"}, "next_month_pct": NUM,
+})
+CPI_CUSTOM = _obj({
+    **ENVELOPE,
+    "inputs": _obj({
+        "chokepoints": {"type": "array", "items": CHOKEPOINT_IDS}, "region": {"type": "string", "enum": ["all", *REGION_IDS["enum"]]},
+        "days": NUM, "gasoline_share": NUM, "eia_move": {"type": "boolean"}, "release": {"type": "boolean"},
+        "release_mbd": NUM, "release_scale": NUM, "sensitivity_central": NUM, "pass_through": NUM, "lag_days": NUM,
+        "baseline_transits": NNUM,
+    }, description="Resolved values after defaults; per-chokepoint values are in supply.chokepoints"),
+    "supply": _obj({
+        "chokepoints": {"type": "array", "items": _obj({
+            "id": CHOKEPOINT_IDS, "name": {"type": "string"}, "source": {"type": "string", "enum": ["live", "manual"]},
+            "fraction": {"type": ["number", "null"], "minimum": 0, "maximum": 1}, "flow_mbd": NUM, "at_risk_mbd": NUM,
+            "bypass_mbd": NUM, "effective_bypass_mbd": NUM, "net_mbd": NUM,
+            "status": {"type": "string", "enum": ["ok", "unavailable"]},
+            "reason": {**NSTR, "description": "Set when status is unavailable (live data missing); the chokepoint then contributes 0"},
+        })},
+        "net_before_release_mbd": NUM, "release_applied_mbd": NUM,
+        "net_supply_loss_mbd": {**NUM, "description": "Sum of chokepoint net losses minus the strategic release, floored at 0"},
+        "overlap_warning": {"type": "boolean", "description": "Hormuz and another chokepoint both have net loss; summing may double count"},
+        "net_supply_loss_lower_bound_mbd": {**NNUM, "description": "Largest single chokepoint net loss after release; null without overlap"},
+    }),
+    "regions": {"type": "array", "items": _obj({
+        "id": REGION_IDS, "name": {"type": "string"}, "series": SERIES,
+        "baseline": _obj({**BASELINE, "gasoline_share_source": {"type": "string", "enum": ["bls", "fallback", "override", "national_fallback"]}}),
+        "months": {"type": ["object", "null"], "description": "null when the region baseline is unavailable",
+                   **{k: v for k, v in MONTHS.items() if k != "type"}},
+        "contributions": {"type": "array", "items": CONTRIBUTION},
+    })},
+    "assumptions": {"type": "array", "items": {"type": "string"}},
+    "sources": CPI["properties"]["sources"],
+}, description="GET /api/cpi/custom?... (computed on request, not a file)")
+
 SCHEMAS = {"regions": REGIONS, "vessels": VESSELS, "event": EVENT, "metrics": METRICS,
-           "sentinel": SENTINEL, "cpi_nowcast": CPI, "cpi_scenario": SCENARIO_RESPONSE}
+           "sentinel": SENTINEL, "cpi_nowcast": CPI, "cpi_scenario": SCENARIO_RESPONSE,
+           "cpi_factors": CPI_FACTORS, "cpi_custom": CPI_CUSTOM}
 
 
 def validate(name, document):

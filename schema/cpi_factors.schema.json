@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cpi_factors.schema.json",
+  "title": "cpi_factors",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.1.0"
+    },
+    "as_of_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC ISO-8601, e.g. 2026-10-17T19:20:00Z"
+    },
+    "calibrated": {
+      "type": "boolean",
+      "const": false
+    },
+    "factors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "toggle",
+              "slider",
+              "locked"
+            ]
+          },
+          "default": {
+            "type": [
+              "number",
+              "boolean",
+              "null"
+            ]
+          },
+          "min": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "max": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "step": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "unit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Why the control is disabled; null when available"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "kind",
+          "default",
+          "min",
+          "max",
+          "step",
+          "unit",
+          "available",
+          "reason"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "chokepoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "hormuz",
+              "malacca",
+              "bab_el_mandeb",
+              "suez"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "flow_mbd": {
+            "type": "number"
+          },
+          "default_bypass_mbd": {
+            "type": "number"
+          },
+          "default_fraction": {
+            "type": "number"
+          },
+          "live_available": {
+            "type": "boolean"
+          },
+          "live_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "flow_mbd",
+          "default_bypass_mbd",
+          "default_fraction",
+          "live_available",
+          "live_reason"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "regions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "national",
+              "northeast",
+              "midwest",
+              "south",
+              "west"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "series": {
+            "type": "object",
+            "properties": {
+              "bls_energy": {
+                "type": "string"
+              },
+              "bls_gasoline": {
+                "type": "string"
+              },
+              "eia_gasoline": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "bls_energy",
+              "bls_gasoline",
+              "eia_gasoline"
+            ],
+            "additionalProperties": false
+          },
+          "baseline_status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "partial",
+              "unavailable"
+            ]
+          },
+          "data_period": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "YYYY-MM of the last BLS energy print"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "series",
+          "baseline_status",
+          "data_period"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "as_of_utc",
+    "calibrated",
+    "factors",
+    "chokepoints",
+    "regions"
+  ],
+  "additionalProperties": false,
+  "description": "GET /api/cpi/factors: controls and defaults for GET /api/cpi/custom (computed on request)"
+}

@@ -1,0 +1,692 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cpi_custom.schema.json",
+  "title": "cpi_custom",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.1.0"
+    },
+    "as_of_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC ISO-8601, e.g. 2026-10-17T19:20:00Z"
+    },
+    "calibrated": {
+      "type": "boolean",
+      "const": false
+    },
+    "inputs": {
+      "type": "object",
+      "properties": {
+        "chokepoints": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "hormuz",
+              "malacca",
+              "bab_el_mandeb",
+              "suez"
+            ]
+          }
+        },
+        "region": {
+          "type": "string",
+          "enum": [
+            "all",
+            "national",
+            "northeast",
+            "midwest",
+            "south",
+            "west"
+          ]
+        },
+        "days": {
+          "type": "number"
+        },
+        "gasoline_share": {
+          "type": "number"
+        },
+        "eia_move": {
+          "type": "boolean"
+        },
+        "release": {
+          "type": "boolean"
+        },
+        "release_mbd": {
+          "type": "number"
+        },
+        "release_scale": {
+          "type": "number"
+        },
+        "sensitivity_central": {
+          "type": "number"
+        },
+        "pass_through": {
+          "type": "number"
+        },
+        "lag_days": {
+          "type": "number"
+        },
+        "baseline_transits": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "chokepoints",
+        "region",
+        "days",
+        "gasoline_share",
+        "eia_move",
+        "release",
+        "release_mbd",
+        "release_scale",
+        "sensitivity_central",
+        "pass_through",
+        "lag_days",
+        "baseline_transits"
+      ],
+      "additionalProperties": false,
+      "description": "Resolved values after defaults; per-chokepoint values are in supply.chokepoints"
+    },
+    "supply": {
+      "type": "object",
+      "properties": {
+        "chokepoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "enum": [
+                  "hormuz",
+                  "malacca",
+                  "bab_el_mandeb",
+                  "suez"
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string",
+                "enum": [
+                  "live",
+                  "manual"
+                ]
+              },
+              "fraction": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              },
+              "flow_mbd": {
+                "type": "number"
+              },
+              "at_risk_mbd": {
+                "type": "number"
+              },
+              "bypass_mbd": {
+                "type": "number"
+              },
+              "effective_bypass_mbd": {
+                "type": "number"
+              },
+              "net_mbd": {
+                "type": "number"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Set when status is unavailable (live data missing); the chokepoint then contributes 0"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "source",
+              "fraction",
+              "flow_mbd",
+              "at_risk_mbd",
+              "bypass_mbd",
+              "effective_bypass_mbd",
+              "net_mbd",
+              "status",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "net_before_release_mbd": {
+          "type": "number"
+        },
+        "release_applied_mbd": {
+          "type": "number"
+        },
+        "net_supply_loss_mbd": {
+          "type": "number",
+          "description": "Sum of chokepoint net losses minus the strategic release, floored at 0"
+        },
+        "overlap_warning": {
+          "type": "boolean",
+          "description": "Hormuz and another chokepoint both have net loss; summing may double count"
+        },
+        "net_supply_loss_lower_bound_mbd": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Largest single chokepoint net loss after release; null without overlap"
+        }
+      },
+      "required": [
+        "chokepoints",
+        "net_before_release_mbd",
+        "release_applied_mbd",
+        "net_supply_loss_mbd",
+        "overlap_warning",
+        "net_supply_loss_lower_bound_mbd"
+      ],
+      "additionalProperties": false
+    },
+    "regions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "national",
+              "northeast",
+              "midwest",
+              "south",
+              "west"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "series": {
+            "type": "object",
+            "properties": {
+              "bls_energy": {
+                "type": "string"
+              },
+              "bls_gasoline": {
+                "type": "string"
+              },
+              "eia_gasoline": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "bls_energy",
+              "bls_gasoline",
+              "eia_gasoline"
+            ],
+            "additionalProperties": false
+          },
+          "baseline": {
+            "type": "object",
+            "properties": {
+              "cpi_energy_last": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "cpi_energy_period": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "YYYY-MM of the last official print"
+              },
+              "cpi_gasoline_last": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "gasoline_share_of_energy": {
+                "type": "number"
+              },
+              "gasoline_share_source": {
+                "type": "string",
+                "enum": [
+                  "bls",
+                  "fallback",
+                  "override",
+                  "national_fallback"
+                ]
+              },
+              "retail_gasoline_this_month_usd_gal": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "retail_gasoline_last_month_usd_gal": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "retail_gasoline_mom_pct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "nowcast_period": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "nowcast_cpi_energy": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "nowcast_mom_pct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "partial",
+                  "unavailable"
+                ]
+              }
+            },
+            "required": [
+              "cpi_energy_last",
+              "cpi_energy_period",
+              "cpi_gasoline_last",
+              "gasoline_share_of_energy",
+              "gasoline_share_source",
+              "retail_gasoline_this_month_usd_gal",
+              "retail_gasoline_last_month_usd_gal",
+              "retail_gasoline_mom_pct",
+              "nowcast_period",
+              "nowcast_cpi_energy",
+              "nowcast_mom_pct",
+              "status"
+            ],
+            "additionalProperties": false
+          },
+          "months": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "null when the region baseline is unavailable",
+            "properties": {
+              "current_month": {
+                "type": "object",
+                "properties": {
+                  "period": {
+                    "type": "string",
+                    "description": "YYYY-MM"
+                  },
+                  "elevated_pump_days": {
+                    "type": "number",
+                    "description": "Days in this month with elevated pump prices after the pass-through lag"
+                  },
+                  "days_in_month": {
+                    "type": "integer"
+                  },
+                  "baseline_cpi_energy": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "low": {
+                    "type": "object",
+                    "properties": {
+                      "crude_shock_usd_bbl": {
+                        "type": "number"
+                      },
+                      "gasoline_shock_usd_gal": {
+                        "type": "number"
+                      },
+                      "energy_cpi_shock_pct": {
+                        "type": "number",
+                        "description": "Month-average impact on the energy CPI, percent, on top of the baseline"
+                      },
+                      "energy_cpi_index": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "crude_shock_usd_bbl",
+                      "gasoline_shock_usd_gal",
+                      "energy_cpi_shock_pct",
+                      "energy_cpi_index"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "central": {
+                    "type": "object",
+                    "properties": {
+                      "crude_shock_usd_bbl": {
+                        "type": "number"
+                      },
+                      "gasoline_shock_usd_gal": {
+                        "type": "number"
+                      },
+                      "energy_cpi_shock_pct": {
+                        "type": "number",
+                        "description": "Month-average impact on the energy CPI, percent, on top of the baseline"
+                      },
+                      "energy_cpi_index": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "crude_shock_usd_bbl",
+                      "gasoline_shock_usd_gal",
+                      "energy_cpi_shock_pct",
+                      "energy_cpi_index"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "high": {
+                    "type": "object",
+                    "properties": {
+                      "crude_shock_usd_bbl": {
+                        "type": "number"
+                      },
+                      "gasoline_shock_usd_gal": {
+                        "type": "number"
+                      },
+                      "energy_cpi_shock_pct": {
+                        "type": "number",
+                        "description": "Month-average impact on the energy CPI, percent, on top of the baseline"
+                      },
+                      "energy_cpi_index": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "crude_shock_usd_bbl",
+                      "gasoline_shock_usd_gal",
+                      "energy_cpi_shock_pct",
+                      "energy_cpi_index"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "period",
+                  "elevated_pump_days",
+                  "days_in_month",
+                  "baseline_cpi_energy",
+                  "low",
+                  "central",
+                  "high"
+                ],
+                "additionalProperties": false
+              },
+              "next_month": {
+                "type": "object",
+                "properties": {
+                  "period": {
+                    "type": "string",
+                    "description": "YYYY-MM"
+                  },
+                  "elevated_pump_days": {
+                    "type": "number",
+                    "description": "Days in this month with elevated pump prices after the pass-through lag"
+                  },
+                  "days_in_month": {
+                    "type": "integer"
+                  },
+                  "baseline_cpi_energy": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "low": {
+                    "type": "object",
+                    "properties": {
+                      "crude_shock_usd_bbl": {
+                        "type": "number"
+                      },
+                      "gasoline_shock_usd_gal": {
+                        "type": "number"
+                      },
+                      "energy_cpi_shock_pct": {
+                        "type": "number",
+                        "description": "Month-average impact on the energy CPI, percent, on top of the baseline"
+                      },
+                      "energy_cpi_index": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "crude_shock_usd_bbl",
+                      "gasoline_shock_usd_gal",
+                      "energy_cpi_shock_pct",
+                      "energy_cpi_index"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "central": {
+                    "type": "object",
+                    "properties": {
+                      "crude_shock_usd_bbl": {
+                        "type": "number"
+                      },
+                      "gasoline_shock_usd_gal": {
+                        "type": "number"
+                      },
+                      "energy_cpi_shock_pct": {
+                        "type": "number",
+                        "description": "Month-average impact on the energy CPI, percent, on top of the baseline"
+                      },
+                      "energy_cpi_index": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "crude_shock_usd_bbl",
+                      "gasoline_shock_usd_gal",
+                      "energy_cpi_shock_pct",
+                      "energy_cpi_index"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "high": {
+                    "type": "object",
+                    "properties": {
+                      "crude_shock_usd_bbl": {
+                        "type": "number"
+                      },
+                      "gasoline_shock_usd_gal": {
+                        "type": "number"
+                      },
+                      "energy_cpi_shock_pct": {
+                        "type": "number",
+                        "description": "Month-average impact on the energy CPI, percent, on top of the baseline"
+                      },
+                      "energy_cpi_index": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "crude_shock_usd_bbl",
+                      "gasoline_shock_usd_gal",
+                      "energy_cpi_shock_pct",
+                      "energy_cpi_index"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "period",
+                  "elevated_pump_days",
+                  "days_in_month",
+                  "baseline_cpi_energy",
+                  "low",
+                  "central",
+                  "high"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "current_month",
+              "next_month"
+            ],
+            "additionalProperties": false
+          },
+          "contributions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "baseline",
+                    "chokepoint",
+                    "bypass",
+                    "release"
+                  ]
+                },
+                "current_month_pct": {
+                  "type": "number",
+                  "description": "Energy-CPI percent points, central case"
+                },
+                "next_month_pct": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "kind",
+                "current_month_pct",
+                "next_month_pct"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "series",
+          "baseline",
+          "months",
+          "contributions"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "series": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fetched_utc": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "series",
+          "fetched_utc",
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "as_of_utc",
+    "calibrated",
+    "inputs",
+    "supply",
+    "regions",
+    "assumptions",
+    "sources"
+  ],
+  "additionalProperties": false,
+  "description": "GET /api/cpi/custom?... (computed on request, not a file)"
+}

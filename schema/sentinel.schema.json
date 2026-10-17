@@ -6,7 +6,7 @@
   "properties": {
     "schema_version": {
       "type": "string",
-      "const": "2.0.0"
+      "const": "2.1.0"
     },
     "as_of_utc": {
       "type": "string",

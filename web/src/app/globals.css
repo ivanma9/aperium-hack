@@ -853,3 +853,15 @@ button:focus-visible,
   font-size: 16px;
   color: var(--text);
 }
+
+/* ── CPI factor picker (/factors) ──────────────────────── */
+.fp { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 16px; align-items: start; color: var(--text); }
+.fp-card { padding: 16px; border-radius: 16px; }
+.fp-out { gap: 16px; }
+.fp-ctl { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.fp-choke { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; border-top: 1px solid var(--hairline); font-size: 13px; }
+.fp-warn { padding: 8px 10px; border-radius: 10px; font-size: 12px; color: var(--accent); border: 1px solid var(--accent); }
+.fp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.fp-table th, .fp-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--hairline); }
+.fp-list { margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+@media (max-width: 800px) { .fp { grid-template-columns: 1fr; } }

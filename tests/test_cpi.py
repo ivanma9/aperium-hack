@@ -188,3 +188,14 @@ def test_api_scenario(tmp_path, monkeypatch):
     for q in ({"disruption": 1.5, "days": 10}, {"disruption": 0.3, "days": 0}, {"disruption": 0.3, "days": 366},
               {"disruption": -0.1, "days": 5}, {"days": 5}):
         assert cl.get("/api/cpi/scenario", params=q).status_code == 422
+
+
+def test_live_needs_min_observed_hours():
+    m = {"coverage_status": "ok", "data_coverage": {"status": "live"},
+         "crossings": {w: {"observed_h": 1.2, "laden_out": {"count": 0, "per_day": 0.0, "per_day_ci90": [0.0, 60.0]}}
+                       for w in ("24h", "3d", "7d")},
+         "laden_out_daily": []}
+    from aperium import cpi_nowcast
+    cfg = cpi_nowcast.load_config()
+    live = cpi_nowcast.hormuz_live(m, cfg, None, datetime(2026, 10, 17, 21, tzinfo=timezone.utc))
+    assert live["status"] == "no_data" and live["disruption_fraction"] is None

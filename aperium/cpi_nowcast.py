@@ -275,6 +275,9 @@ def hormuz_live(metrics, cfg, base, now):
     if out["coverage_status"] == "data_gap":
         out["status"] = "data_gap"
         return out
+    # Too little history: zero crossings in an hour would otherwise read as a full closure.
+    if metrics["crossings"]["24h"]["observed_h"] < hc.get("min_observed_h", 12):
+        return out
     out["status"] = "ok"
     c24 = metrics["crossings"]["24h"]["laden_out"]
     c3 = metrics["crossings"]["3d"]["laden_out"]

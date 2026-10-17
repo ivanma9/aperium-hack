@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "as_of_utc": "2026-10-17T21:07:42Z",
+  "as_of_utc": "2026-10-17T21:12:35Z",
   "calibrated": false,
   "coverage_status": "ok",
   "baseline": {
@@ -96,57 +96,57 @@
   "hormuz_scenario": {
     "disruption_fraction": 0.5,
     "days": 30.0,
-    "start_utc": "2026-10-17T21:07:42Z",
+    "start_utc": "2026-10-17T21:12:35Z",
     "supply_at_risk_mbd": 10.0,
     "bypass_capacity_mbd": 2.5,
     "net_supply_loss_mbd": 5.5,
     "months": {
       "current_month": {
         "period": "2026-10",
-        "elevated_pump_days": 4.1196,
+        "elevated_pump_days": 4.1163,
         "days_in_month": 31,
         "baseline_cpi_energy": 341.078,
         "low": {
           "crude_shock_usd_bbl": 16.019,
           "gasoline_shock_usd_gal": 0.3814,
-          "energy_cpi_shock_pct": 0.60182,
-          "energy_cpi_index": 343.131
+          "energy_cpi_shock_pct": 0.60133,
+          "energy_cpi_index": 343.129
         },
         "central": {
           "crude_shock_usd_bbl": 32.039,
           "gasoline_shock_usd_gal": 0.7628,
-          "energy_cpi_shock_pct": 1.20365,
-          "energy_cpi_index": 345.183
+          "energy_cpi_shock_pct": 1.20265,
+          "energy_cpi_index": 345.18
         },
         "high": {
           "crude_shock_usd_bbl": 64.078,
           "gasoline_shock_usd_gal": 1.5257,
-          "energy_cpi_shock_pct": 2.40729,
-          "energy_cpi_index": 349.289
+          "energy_cpi_shock_pct": 2.40531,
+          "energy_cpi_index": 349.282
         }
       },
       "next_month": {
         "period": "2026-11",
-        "elevated_pump_days": 25.8804,
+        "elevated_pump_days": 25.8837,
         "days_in_month": 30,
         "baseline_cpi_energy": 341.078,
         "low": {
           "crude_shock_usd_bbl": 16.019,
           "gasoline_shock_usd_gal": 0.3814,
-          "energy_cpi_shock_pct": 3.90678,
-          "energy_cpi_index": 354.403
+          "energy_cpi_shock_pct": 3.9073,
+          "energy_cpi_index": 354.405
         },
         "central": {
           "crude_shock_usd_bbl": 32.039,
           "gasoline_shock_usd_gal": 0.7628,
-          "energy_cpi_shock_pct": 7.81357,
-          "energy_cpi_index": 367.728
+          "energy_cpi_shock_pct": 7.81459,
+          "energy_cpi_index": 367.732
         },
         "high": {
           "crude_shock_usd_bbl": 64.078,
           "gasoline_shock_usd_gal": 1.5257,
-          "energy_cpi_shock_pct": 15.62714,
-          "energy_cpi_index": 394.379
+          "energy_cpi_shock_pct": 15.62919,
+          "energy_cpi_index": 394.386
         }
       }
     },
@@ -172,7 +172,7 @@
       14,
       30
     ],
-    "start_utc": "2026-10-17T21:07:42Z",
+    "start_utc": "2026-10-17T21:12:35Z",
     "cells": [
       {
         "disruption_fraction": 0.0,
@@ -374,14 +374,14 @@
         "days": 7,
         "net_supply_loss_mbd": 1.5,
         "current_month": {
-          "low": 0.16413,
-          "central": 0.32827,
-          "high": 0.65653
+          "low": 0.164,
+          "central": 0.328,
+          "high": 0.65599
         },
         "next_month": {
-          "low": 0.11858,
-          "central": 0.23717,
-          "high": 0.47433
+          "low": 0.11872,
+          "central": 0.23745,
+          "high": 0.47489
         }
       },
       {
@@ -389,14 +389,14 @@
         "days": 14,
         "net_supply_loss_mbd": 1.5,
         "current_month": {
-          "low": 0.16413,
-          "central": 0.32827,
-          "high": 0.65653
+          "low": 0.164,
+          "central": 0.328,
+          "high": 0.65599
         },
         "next_month": {
-          "low": 0.40677,
-          "central": 0.81354,
-          "high": 1.62709
+          "low": 0.40691,
+          "central": 0.81382,
+          "high": 1.62764
         }
       },
       {
@@ -404,14 +404,14 @@
         "days": 30,
         "net_supply_loss_mbd": 1.5,
         "current_month": {
-          "low": 0.16413,
-          "central": 0.32827,
-          "high": 0.65653
+          "low": 0.164,
+          "central": 0.328,
+          "high": 0.65599
         },
         "next_month": {
-          "low": 1.06549,
-          "central": 2.13097,
-          "high": 4.26195
+          "low": 1.06563,
+          "central": 2.13125,
+          "high": 4.26251
         }
       },
       {
@@ -434,14 +434,14 @@
         "days": 7,
         "net_supply_loss_mbd": 3.5,
         "current_month": {
-          "low": 0.38298,
-          "central": 0.76596,
-          "high": 1.53191
+          "low": 0.38266,
+          "central": 0.76533,
+          "high": 1.53065
         },
         "next_month": {
-          "low": 0.27669,
-          "central": 0.55339,
-          "high": 1.10678
+          "low": 0.27702,
+          "central": 0.55404,
+          "high": 1.10808
         }
       },
       {
@@ -449,14 +449,14 @@
         "days": 14,
         "net_supply_loss_mbd": 3.5,
         "current_month": {
-          "low": 0.38298,
-          "central": 0.76596,
-          "high": 1.53191
+          "low": 0.38266,
+          "central": 0.76533,
+          "high": 1.53065
         },
         "next_month": {
-          "low": 0.94913,
-          "central": 1.89827,
-          "high": 3.79653
+          "low": 0.94946,
+          "central": 1.89892,
+          "high": 3.79784
         }
       },
       {
@@ -464,14 +464,14 @@
         "days": 30,
         "net_supply_loss_mbd": 3.5,
         "current_month": {
-          "low": 0.38298,
-          "central": 0.76596,
-          "high": 1.53191
+          "low": 0.38266,
+          "central": 0.76533,
+          "high": 1.53065
         },
         "next_month": {
-          "low": 2.48614,
-          "central": 4.97227,
-          "high": 9.94454
+          "low": 2.48646,
+          "central": 4.97292,
+          "high": 9.94585
         }
       },
       {
@@ -494,14 +494,14 @@
         "days": 7,
         "net_supply_loss_mbd": 5.5,
         "current_month": {
-          "low": 0.60182,
-          "central": 1.20365,
-          "high": 2.40729
+          "low": 0.60133,
+          "central": 1.20265,
+          "high": 2.40531
         },
         "next_month": {
-          "low": 0.43481,
-          "central": 0.86961,
-          "high": 1.73922
+          "low": 0.43532,
+          "central": 0.87064,
+          "high": 1.74127
         }
       },
       {
@@ -509,14 +509,14 @@
         "days": 14,
         "net_supply_loss_mbd": 5.5,
         "current_month": {
-          "low": 0.60182,
-          "central": 1.20365,
-          "high": 2.40729
+          "low": 0.60133,
+          "central": 1.20265,
+          "high": 2.40531
         },
         "next_month": {
-          "low": 1.49149,
-          "central": 2.98299,
-          "high": 5.96598
+          "low": 1.49201,
+          "central": 2.98401,
+          "high": 5.96803
         }
       },
       {
@@ -524,14 +524,14 @@
         "days": 30,
         "net_supply_loss_mbd": 5.5,
         "current_month": {
-          "low": 0.60182,
-          "central": 1.20365,
-          "high": 2.40729
+          "low": 0.60133,
+          "central": 1.20265,
+          "high": 2.40531
         },
         "next_month": {
-          "low": 3.90678,
-          "central": 7.81357,
-          "high": 15.62714
+          "low": 3.9073,
+          "central": 7.81459,
+          "high": 15.62919
         }
       },
       {
@@ -554,14 +554,14 @@
         "days": 7,
         "net_supply_loss_mbd": 7.5,
         "current_month": {
-          "low": 0.82067,
-          "central": 1.64134,
-          "high": 3.28267
+          "low": 0.81999,
+          "central": 1.63998,
+          "high": 3.27997
         },
         "next_month": {
-          "low": 0.59292,
-          "central": 1.18583,
-          "high": 2.37167
+          "low": 0.59362,
+          "central": 1.18723,
+          "high": 2.37446
         }
       },
       {
@@ -569,14 +569,14 @@
         "days": 14,
         "net_supply_loss_mbd": 7.5,
         "current_month": {
-          "low": 0.82067,
-          "central": 1.64134,
-          "high": 3.28267
+          "low": 0.81999,
+          "central": 1.63998,
+          "high": 3.27997
         },
         "next_month": {
-          "low": 2.03386,
-          "central": 4.06771,
-          "high": 8.13543
+          "low": 2.03456,
+          "central": 4.06911,
+          "high": 8.13822
         }
       },
       {
@@ -584,14 +584,14 @@
         "days": 30,
         "net_supply_loss_mbd": 7.5,
         "current_month": {
-          "low": 0.82067,
-          "central": 1.64134,
-          "high": 3.28267
+          "low": 0.81999,
+          "central": 1.63998,
+          "high": 3.27997
         },
         "next_month": {
-          "low": 5.32743,
-          "central": 10.65487,
-          "high": 21.30973
+          "low": 5.32813,
+          "central": 10.65626,
+          "high": 21.31253
         }
       },
       {
@@ -614,14 +614,14 @@
         "days": 7,
         "net_supply_loss_mbd": 9.5,
         "current_month": {
-          "low": 1.03951,
-          "central": 2.07902,
-          "high": 4.15805
+          "low": 1.03866,
+          "central": 2.07731,
+          "high": 4.15462
         },
         "next_month": {
-          "low": 0.75103,
-          "central": 1.50206,
-          "high": 3.00411
+          "low": 0.75191,
+          "central": 1.50383,
+          "high": 3.00765
         }
       },
       {
@@ -629,14 +629,14 @@
         "days": 14,
         "net_supply_loss_mbd": 9.5,
         "current_month": {
-          "low": 1.03951,
-          "central": 2.07902,
-          "high": 4.15805
+          "low": 1.03866,
+          "central": 2.07731,
+          "high": 4.15462
         },
         "next_month": {
-          "low": 2.57622,
-          "central": 5.15244,
-          "high": 10.30487
+          "low": 2.5771,
+          "central": 5.15421,
+          "high": 10.30841
         }
       },
       {
@@ -644,14 +644,14 @@
         "days": 30,
         "net_supply_loss_mbd": 9.5,
         "current_month": {
-          "low": 1.03951,
-          "central": 2.07902,
-          "high": 4.15805
+          "low": 1.03866,
+          "central": 2.07731,
+          "high": 4.15462
         },
         "next_month": {
-          "low": 6.74808,
-          "central": 13.49616,
-          "high": 26.99233
+          "low": 6.74897,
+          "central": 13.49793,
+          "high": 26.99587
         }
       },
       {
@@ -674,14 +674,14 @@
         "days": 7,
         "net_supply_loss_mbd": 11.5,
         "current_month": {
-          "low": 1.25836,
-          "central": 2.51671,
-          "high": 5.03343
+          "low": 1.25732,
+          "central": 2.51464,
+          "high": 5.02928
         },
         "next_month": {
-          "low": 0.90914,
-          "central": 1.81828,
-          "high": 3.63656
+          "low": 0.91021,
+          "central": 1.82042,
+          "high": 3.64084
         }
       },
       {
@@ -689,14 +689,14 @@
         "days": 14,
         "net_supply_loss_mbd": 11.5,
         "current_month": {
-          "low": 1.25836,
-          "central": 2.51671,
-          "high": 5.03343
+          "low": 1.25732,
+          "central": 2.51464,
+          "high": 5.02928
         },
         "next_month": {
-          "low": 3.11858,
-          "central": 6.23716,
-          "high": 12.47432
+          "low": 3.11965,
+          "central": 6.2393,
+          "high": 12.47861
         }
       },
       {
@@ -704,14 +704,14 @@
         "days": 30,
         "net_supply_loss_mbd": 11.5,
         "current_month": {
-          "low": 1.25836,
-          "central": 2.51671,
-          "high": 5.03343
+          "low": 1.25732,
+          "central": 2.51464,
+          "high": 5.02928
         },
         "next_month": {
-          "low": 8.16873,
-          "central": 16.33746,
-          "high": 32.67493
+          "low": 8.1698,
+          "central": 16.33961,
+          "high": 32.67921
         }
       },
       {
@@ -734,14 +734,14 @@
         "days": 7,
         "net_supply_loss_mbd": 13.5,
         "current_month": {
-          "low": 1.4772,
-          "central": 2.9544,
-          "high": 5.90881
+          "low": 1.47598,
+          "central": 2.95197,
+          "high": 5.90394
         },
         "next_month": {
-          "low": 1.06725,
-          "central": 2.1345,
-          "high": 4.269
+          "low": 1.06851,
+          "central": 2.13701,
+          "high": 4.27403
         }
       },
       {
@@ -749,14 +749,14 @@
         "days": 14,
         "net_supply_loss_mbd": 13.5,
         "current_month": {
-          "low": 1.4772,
-          "central": 2.9544,
-          "high": 5.90881
+          "low": 1.47598,
+          "central": 2.95197,
+          "high": 5.90394
         },
         "next_month": {
-          "low": 3.66094,
-          "central": 7.32188,
-          "high": 14.64377
+          "low": 3.6622,
+          "central": 7.3244,
+          "high": 14.6488
         }
       },
       {
@@ -764,14 +764,14 @@
         "days": 30,
         "net_supply_loss_mbd": 13.5,
         "current_month": {
-          "low": 1.4772,
-          "central": 2.9544,
-          "high": 5.90881
+          "low": 1.47598,
+          "central": 2.95197,
+          "high": 5.90394
         },
         "next_month": {
-          "low": 9.58938,
-          "central": 19.17876,
-          "high": 38.35752
+          "low": 9.59064,
+          "central": 19.18128,
+          "high": 38.36255
         }
       },
       {
@@ -794,14 +794,14 @@
         "days": 7,
         "net_supply_loss_mbd": 15.5,
         "current_month": {
-          "low": 1.69605,
-          "central": 3.39209,
-          "high": 6.78419
+          "low": 1.69465,
+          "central": 3.3893,
+          "high": 6.7786
         },
         "next_month": {
-          "low": 1.22536,
-          "central": 2.45072,
-          "high": 4.90144
+          "low": 1.2268,
+          "central": 2.45361,
+          "high": 4.90722
         }
       },
       {
@@ -809,14 +809,14 @@
         "days": 14,
         "net_supply_loss_mbd": 15.5,
         "current_month": {
-          "low": 1.69605,
-          "central": 3.39209,
-          "high": 6.78419
+          "low": 1.69465,
+          "central": 3.3893,
+          "high": 6.7786
         },
         "next_month": {
-          "low": 4.2033,
-          "central": 8.40661,
-          "high": 16.81321
+          "low": 4.20475,
+          "central": 8.40949,
+          "high": 16.81899
         }
       },
       {
@@ -824,14 +824,14 @@
         "days": 30,
         "net_supply_loss_mbd": 15.5,
         "current_month": {
-          "low": 1.69605,
-          "central": 3.39209,
-          "high": 6.78419
+          "low": 1.69465,
+          "central": 3.3893,
+          "high": 6.7786
         },
         "next_month": {
-          "low": 11.01003,
-          "central": 22.02006,
-          "high": 44.04012
+          "low": 11.01147,
+          "central": 22.02295,
+          "high": 44.04589
         }
       }
     ]
@@ -855,13 +855,13 @@
       "name": "BLS CPI (public API v2)",
       "series": "CUUR0000SA0E, CUUR0000SETB01",
       "fetched_utc": "2026-10-17T20:26:55Z",
-      "status": "ok (cache)"
+      "status": "ok (offline cache)"
     },
     {
       "name": "EIA weekly US regular retail gasoline",
       "series": "EMM_EPMR_PTE_NUS_DPG",
       "fetched_utc": "2026-10-17T20:48:45Z",
-      "status": "ok (cache)"
+      "status": "ok (offline cache)"
     },
     {
       "name": "Hormuz AIS metrics",

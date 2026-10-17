@@ -109,7 +109,7 @@ Sentinel-1 passes Corpus Christi about every 12 days; Hormuz has no radar pipeli
   rise after a 1-2 week pass-through lag and stay up for `days`; each month gets the share of the
   impact matching its elevated days.
 - `hormuz_live` — from observed laden outbound gate crossings: `status` (`ok` | `data_gap` |
-  `no_data`; only `ok` carries numbers), `coverage_status`, `laden_out_per_day_24h` (+ `_ci90`),
+  `no_data`; only `ok` carries numbers; `no_data` also until 12 h of AIS exist in the 24h window), `coverage_status`, `laden_out_per_day_24h` (+ `_ci90`),
   `laden_out_per_day_3d`, `baseline_laden_out_per_day`, `disruption_fraction` (+ `_ci90`),
   `days_since_drop`, `recovery_trend` (`improving` | `flat` | `worsening`, 24h vs 3d rate), and
   `projection` (a shock block, or null).

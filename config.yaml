@@ -16,6 +16,7 @@ gasoline_share_fallback: 0.5
 reference_gasoline_usd_gal: 3.10
 
 hormuz:
+  min_observed_h: 12              # hours of AIS needed in the 24h window before a live disruption is reported (else no_data)
   flow_mbd: 20.0                  # oil moving through the strait (crude + products), mb/d
   baseline_laden_out_per_day: 20  # typical laden outbound tanker transits/day, uncalibrated; review said ~15-25
   drop_threshold: 0.25            # a UTC day is "dropped" if its laden-out rate is < (1 - this) x baseline

@@ -33,6 +33,24 @@ function aisVessel(overrides: Partial<AisVessel> = {}): AisVessel {
 }
 
 describe("tidemark store", () => {
+  it("keeps analytics area selection in sync without switching views or toggling it off", async () => {
+    const { store } = await setup();
+    store.getState().setView("analytics");
+    store.getState().setAnalyticsPort("fujairah");
+    store.getState().setAnalyticsPort("fujairah");
+    expect(store.getState().selectedPortId).toBe("fujairah");
+    expect(store.getState().view).toBe("analytics");
+    store.getState().setAnalyticsPort("jebel_ali");
+    expect(store.getState().selectedPortId).toBe("jebel_ali");
+    store.getState().setAnalyticsPort(null);
+    expect(store.getState().selectedPortId).toBeNull();
+    store.getState().setAnalyticsPort("fujairah");
+    store.getState().setGeography("suez");
+    expect(store.getState().selectedPortId).toBeNull();
+    store.getState().setAnalyticsPort("fujairah");
+    expect(store.getState().selectedPortId).toBeNull();
+  });
+
   it("hydrates from a snapshot, with geographies from the backend", async () => {
     const { store } = await setup();
     const s = store.getState();

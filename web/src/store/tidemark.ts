@@ -12,7 +12,7 @@ import type {
 } from "@/lib/feed/types";
 import { findBySlug, findGeography, type Geography } from "@/lib/geographies";
 
-export type ViewId = "flow" | "vessels" | "ports" | "supply" | "cpi" | "connect";
+export type ViewId = "flow" | "vessels" | "ports" | "analytics" | "supply" | "cpi" | "connect";
 
 /** Ships come from two places: simulated corridor traffic (mock feed) and live AIS (collector). */
 export type ShipSource = "sim" | "ais";
@@ -74,6 +74,7 @@ export interface TidemarkActions {
   selectShip(ref: ShipRef | null): void;
   hoverShip(ref: ShipRef | null): void;
   selectPort(id: string | null): void;
+  setAnalyticsPort(id: string | null): void;
   setCollector(collector: CollectorState): void;
   aisSnapshot(vessels: AisVessel[]): void;
   aisUpsert(vessel: AisVessel): void;
@@ -181,6 +182,9 @@ export function createTidemarkStore(geographies: readonly Geography[], initial: 
           selectedPortId: id && s.selectedPortId !== id ? id : null,
           view: id ? "ports" : s.view,
         })),
+      setAnalyticsPort: (id) => set((s) => ({
+        selectedPortId: selectGeography(s).ports.some(p => p.id === id) ? id : null,
+      })),
       setCollector: (collector) => set({ collector }),
       aisSnapshot: (vessels) =>
         set((s) => ({ ais: { ...s.ais, vessels: Object.fromEntries(vessels.map((v) => [v.mmsi, v])) } })),

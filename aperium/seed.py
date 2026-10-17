@@ -19,6 +19,29 @@ PORTS = [
     {"id": "jebel_ali", "name": "Jebel Ali", "geography_id": "hormuz", "bounds_lat_lon": [[24.90, 54.95], [25.12, 55.15]]},
 ]
 
+# Port of Fujairah NTM 346, section B.4, p.7; effective 2024-02-01.
+# Reviewed against the authority's ordered coordinate table on 2026-10-17.
+# This L-shaped berth-waiting area excludes adjacent BS (services) and S (STS).
+# Decimal minutes are converted to degrees; coordinates remain [longitude, latitude].
+ANALYTICS_BOUNDARIES = [
+    {
+        "id": "fujairah_waiting_w", "geography_id": "hormuz", "port": "fujairah",
+        "kind": "anchorage", "purpose": "waiting", "reviewed": True,
+        "coordinates": [
+            [56 + 27/60, 25 + 12.6/60],
+            [56 + 29/60, 25 + 12.6/60],
+            [56 + 29/60, 25 + 9.7/60],
+            [56 + 30.3/60, 25 + 9.7/60],
+            [56 + 30.3/60, 25 + 8.2/60],
+            [56 + 27/60, 25 + 8.2/60],
+            [56 + 27/60, 25 + 12.6/60],
+        ],
+        "source": "Port of Fujairah NTM 346, section B.4, p.7, Area W; effective 2024-02-01; "
+                  "coordinate transcription checked 2026-10-17. Inbound berth waiting, excluding SPM terminals. "
+                  "https://fujairahport.ae/wp-content/uploads/2024/01/NTM346.pdf",
+    },
+]
+
 _MALACCA = [[97.6, 5.95], [98.6, 4.85], [99.6, 3.85], [100.6, 2.95], [101.4, 2.45], [102.3, 1.92], [103.0, 1.5],
             [103.6, 1.2], [104.0, 1.22], [104.5, 1.35]]
 _BAB = [[41.9, 15.2], [42.4, 14.3], [42.9, 13.45], [43.2, 12.95], [43.33, 12.6], [43.6, 12.3], [44.2, 12.05], [45.2, 12.0]]

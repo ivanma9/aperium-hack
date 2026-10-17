@@ -1,0 +1,19 @@
+[
+  {
+    "id": "synthetic_terminal",
+    "kind": "terminal",
+    "port": "test_port",
+    "coordinates": [[0,0],[0.01,0],[0.01,0.01],[0,0.01],[0,0]],
+    "source": "Synthetic geometry for configuration illustration only; replace with sourced terminal coordinates.",
+    "reviewed": false
+  },
+  {
+    "id": "synthetic_waiting_area",
+    "kind": "anchorage",
+    "port": "test_port",
+    "coordinates": [[0.02,0],[0.03,0],[0.03,0.01],[0.02,0.01],[0.02,0]],
+    "source": "Synthetic geometry for configuration illustration only; replace with sourced waiting-area coordinates.",
+    "reviewed": false,
+    "purpose": "waiting"
+  }
+]

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getScenario, SCENARIOS } from "@/config/scenarios";
-import { liveView, scenarioToQuery, type CpiCustom, type CpiLive } from "./cpi";
+import { liveView, monthLabel, scenarioToQuery, type CpiCustom, type CpiLive } from "./cpi";
 
 describe("scenarioToQuery", () => {
   it("maps a scenario to a manual chokepoint query", () => {
@@ -60,8 +60,8 @@ function data(price: number | null): CpiCustom {
         name: "United States",
         baseline: { retail_gasoline_this_month_usd_gal: price } as never,
         months: {
-          current_month: { low: shock(1), central: shock(5), high: shock(9) } as never,
-          next_month: {} as never,
+          current_month: { period: "2026-10", elevated_pump_days: 12, days_in_month: 31, low: shock(1), central: shock(5), high: shock(9) } as never,
+          next_month: { period: "2026-11", elevated_pump_days: 30, days_in_month: 30, low: shock(2), central: shock(10), high: shock(20) } as never,
         },
         contributions: [],
       },
@@ -92,6 +92,26 @@ describe("liveView", () => {
     expect(v.netSupplyLossMbd).toBe(2);
     expect([v.energyLowPct, v.energyHighPct]).toEqual([1, 9]);
     expect(v.source).toContain("manual Hormuz 36%");
+  });
+
+  it("exposes next-month values", () => {
+    const v = liveView({ data: data(4), status: "ok" })!;
+    expect([v.currentLabel, v.currentPumpDays, v.currentDaysInMonth]).toEqual(["Oct", 12, 31]);
+    expect(v.next.label).toBe("Nov");
+    expect([v.next.pumpDays, v.next.daysInMonth]).toEqual([30, 30]);
+    expect([v.next.energyPct, v.next.energyLowPct, v.next.energyHighPct]).toEqual([10, 2, 20]);
+    expect(v.next.headlinePp).toBeCloseTo((10 * 6.4) / 100);
+  });
+
+  it("is null when next_month is missing", () => {
+    const d = data(4);
+    d.regions[0].months = { current_month: d.regions[0].months!.current_month } as never;
+    expect(liveView({ data: d, status: "ok" })).toBeNull();
+  });
+
+  it("monthLabel falls back to the raw period", () => {
+    expect(monthLabel("2026-11")).toBe("Nov");
+    expect(monthLabel("weird")).toBe("weird");
   });
 
   it("falls back to the reference gasoline price", () => {

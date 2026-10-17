@@ -71,6 +71,11 @@ export function OutcomeCard() {
         <span>
           Headline <span className="mono">{signed(live ? live.headlinePp : outlook.headline_pp, 2)} pp</span>
         </span>
+        {live && (
+          <span>
+            {live.next.label} <span className="mono">{signed(live.next.energyPct, 1)}% energy · {signed(live.next.headlinePp, 2)} pp headline</span>
+          </span>
+        )}
         <span>
           {live ? (
             <>

@@ -190,13 +190,34 @@ export interface CpiLiveView {
   /** Motor fuel's weight in the CPI basket, %. */
   motorFuelWeight: number;
   source: string;
+  currentLabel: string;
+  currentPumpDays: number;
+  currentDaysInMonth: number;
+  next: {
+    label: string;
+    pumpDays: number;
+    daysInMonth: number;
+    energyPct: number;
+    energyLowPct: number;
+    energyHighPct: number;
+    headlinePp: number;
+  };
+}
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** "2026-10" / "2026-10-01" -> "Oct"; anything else is returned as-is. */
+export function monthLabel(period: string): string {
+  const mm = /^\d{4}-(\d{2})/.exec(period);
+  return (mm && MONTHS[Number(mm[1]) - 1]) || period;
 }
 
 export function liveView(live: CpiLive): CpiLiveView | null {
   const d = live.status === "ok" ? live.data : null;
   const r = d?.regions[0];
   const m = r?.months?.current_month;
-  if (!d || !r || !m) return null;
+  const n = r?.months?.next_month;
+  if (!d || !r || !m || !n) return null;
   const price = r.baseline.retail_gasoline_this_month_usd_gal ?? d.inputs.reference_gasoline_usd_gal;
   const w = d.inputs.energy_weight;
   const manual = d.supply.chokepoints.map((k) => `${k.source} ${k.name}${k.fraction == null ? "" : ` ${Math.round(k.fraction * 100)}%`}`);
@@ -211,6 +232,18 @@ export function liveView(live: CpiLive): CpiLiveView | null {
     energyWeight: w,
     headlinePp: (m.central.energy_cpi_shock_pct * w) / 100,
     motorFuelWeight: w * d.inputs.gasoline_share,
+    currentLabel: monthLabel(m.period),
+    currentPumpDays: m.elevated_pump_days,
+    currentDaysInMonth: m.days_in_month,
+    next: {
+      label: monthLabel(n.period),
+      pumpDays: n.elevated_pump_days,
+      daysInMonth: n.days_in_month,
+      energyPct: n.central.energy_cpi_shock_pct,
+      energyLowPct: n.low.energy_cpi_shock_pct,
+      energyHighPct: n.high.energy_cpi_shock_pct,
+      headlinePp: (n.central.energy_cpi_shock_pct * w) / 100,
+    },
     source: `BLS/EIA + ${manual.join(", ")} · uncalibrated`,
   };
 }

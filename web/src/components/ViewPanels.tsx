@@ -485,11 +485,20 @@ function CpiPanel() {
           val: `+$${live.gasolineShockUsdGal.toFixed(2)}/gal`,
         },
         {
-          label: "Energy CPI, 1 month",
-          note: `range ${signed(live.energyLowPct, 1)}% to ${signed(live.energyHighPct, 1)}%`,
+          label: `Energy CPI, ${live.currentLabel}`,
+          note: `${Math.round(live.currentPumpDays)} of ${live.currentDaysInMonth} days at elevated pump prices · range ${signed(live.energyLowPct, 1)}% to ${signed(live.energyHighPct, 1)}%`,
           val: `${signed(live.energyPct, 1)}%`,
         },
-        { label: "Headline CPI, 1 month", note: `${live.energyWeight.toFixed(1)}% energy weight`, val: `${signed(live.headlinePp, 2)} pp` },
+        {
+          label: `Energy CPI, ${live.next.label}`,
+          note: `${Math.round(live.next.pumpDays)} of ${live.next.daysInMonth} days at elevated pump prices · range ${signed(live.next.energyLowPct, 1)}% to ${signed(live.next.energyHighPct, 1)}%`,
+          val: `${signed(live.next.energyPct, 1)}%`,
+        },
+        {
+          label: `Headline CPI, ${live.currentLabel}`,
+          note: `${live.energyWeight.toFixed(1)}% energy weight · ${live.next.label} ${signed(live.next.headlinePp, 2)} pp`,
+          val: `${signed(live.headlinePp, 2)} pp`,
+        },
       ]
     : [
         { label: "Net supply loss", note: `transit gap after ${loc.bypassLabel}`, val: `${c.netMbd.toFixed(2)} mb/d` },

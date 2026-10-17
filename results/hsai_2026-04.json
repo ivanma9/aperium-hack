@@ -1,0 +1,32 @@
+{
+  "period": "2026-04",
+  "images": [
+    {"file": "hormuz_2026-04-02_ships.jpg", "cloud_pct": 0.0, "usable_fraction": 1.0,
+     "large_vessels": 0, "medium_vessels": 1, "small_vessels": 1,
+     "moving": 1, "stationary": 0,
+     "heading_inbound_NW": 1, "heading_outbound_SE": 0,
+     "clustering": "None; the box is almost empty.",
+     "confidence": "medium",
+     "notes": "q3 ~(930,865): a vessel with a bright foam/wake signature and a linear wake about 250 px long trailing to the ENE. It is moving roughly WSW/W along the inbound direction. The hull is hard to separate from the foam (~10-15 px), so it is counted as medium. q2 right edge ~(1480,480): a small bright mark with a short streak, counted as one small vessel. Not counted: q4 single bright specks at ~(988,1052) and ~(765,1108) with no wake, possibly small boats; the q3 speck at ~(1235,940); a faint detector-boundary line in q2/q4. The water is calm and there is no glint."},
+    {"file": "hormuz_2026-04-07_ships.jpg", "cloud_pct": 0.0, "usable_fraction": 1.0,
+     "large_vessels": 0, "medium_vessels": 0, "small_vessels": 0,
+     "moving": 0, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 0,
+     "clustering": "None.",
+     "confidence": "medium",
+     "notes": "No identifiable hulls or wakes in any tile. All four tiles show widespread 1-px bright speckle, consistent with whitecaps/noise, with denser patches around the Quoin islands (q4) and in lower-left q3. None has a wake or a resolvable hull, so none is counted. A faint detector-boundary line is visible in q2. Confidence is medium rather than high because very small or dark-hulled vessels could be lost in the speckle."},
+    {"file": "hormuz_2026-04-17_ships.jpg", "cloud_pct": 0.05, "usable_fraction": 0.95,
+     "large_vessels": 0, "medium_vessels": 0, "small_vessels": 0,
+     "moving": 0, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 0,
+     "clustering": "None for vessels. Bright blobs with paired dark offsets (small cumulus clouds and their shadows) form bands across the lower q1, lower q2, upper q3 and upper-right q4. These are clouds, not ships.",
+     "confidence": "medium",
+     "notes": "The cloud mask says 0.05%, but small scattered cumulus with shadows visibly covers about 3-5% of the box, so usable_fraction is set to 0.95. Not counted: q3 ~(890-1000,905), a faint short linear bright streak that could be a small or medium vessel wake heading roughly W; it is too faint and has no clear hull. Small isolated bright points at q3 ~(120,220) and ~(873,318) each have a dark shadow offset, so they are clouds. Faint detector-boundary lines and a greenish tint at the edges of q2/q4/q3 are also not vessels."}
+  ],
+  "summary": {
+    "large_per_image": 0.0, "medium_per_image": 0.33,
+    "stationary_large_per_image": 0.0, "moving_share": 1.0,
+    "HSAI": 0.17, "hsai_uncertainty": 0.5,
+    "qualitative": "Commercial traffic in the box was close to zero in all three April images. Across them there is no large vessel, one probable medium vessel moving roughly westward in the inbound direction on 04-02, and no anchored or queued ships. The lanes appear essentially empty. moving_share rests on a single vessel, and the uncertainty mostly comes from small faint targets that were not counted, mixed in with whitecap speckle and small clouds."
+  }
+}

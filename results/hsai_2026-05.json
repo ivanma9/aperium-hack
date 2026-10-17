@@ -1,0 +1,39 @@
+{
+  "period": "2026-05",
+  "images": [
+    {"file": "hormuz_2026-05-02_ships.jpg", "cloud_pct": 0.0, "usable_fraction": 1.0,
+     "large_vessels": 0, "medium_vessels": 0, "small_vessels": 0,
+     "moving": 0, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 0,
+     "clustering": "None; no vessels detected.",
+     "confidence": "medium",
+     "notes": "Calm, clear water with slicks, a detector seam in q2 and faint glint texture. q3 shows a few tiny faint white specks near tile x~930-1005, y~770-890; they could be small boats or whitecaps, so they are not counted. No hull of 6 px or more was found anywhere. The Quoin islands in q4 are clearly land."},
+    {"file": "hormuz_2026-05-09_ships.jpg", "cloud_pct": 0.04, "usable_fraction": 0.98,
+     "large_vessels": 1, "medium_vessels": 0, "small_vessels": 20,
+     "moving": 1, "stationary": 0,
+     "heading_inbound_NW": 1, "heading_outbound_SE": 0,
+     "clustering": "A tight group of about 20 small craft, each with a short bright linear wake and all heading roughly the same way (NE/N), spans the bottom-left of q2 and the top-left of q4. This looks like a formation of fast small boats rather than commercial traffic.",
+     "confidence": "medium",
+     "notes": "One large red-hulled vessel (~25-30 px) in the upper right of q4 has a long curved wake trailing to the SE, so it is heading NW (inbound). The small-craft count is approximate (about 18-25). Moving and stationary counts cover large and medium vessels only. q3 has faint arc-shaped wake lines with no visible hull, and q4 has a faint linear trail from the left edge toward the large Quoin island; neither is counted."},
+    {"file": "hormuz_2026-05-17_ships.jpg", "cloud_pct": 0.01, "usable_fraction": 0.95,
+     "large_vessels": 1, "medium_vessels": 0, "small_vessels": 0,
+     "moving": 1, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 1,
+     "clustering": "None.",
+     "confidence": "medium",
+     "notes": "One red-hulled vessel (~20 px) at the top of q4 has a short wake trailing to the NW, so it is heading SE (outbound). Rough sea with many whitecap speckles across all tiles could hide 1-3 px boats; isolated bright pixels are not counted."},
+    {"file": "hormuz_2026-05-29_ships.jpg", "cloud_pct": 0.05, "usable_fraction": 0.9,
+     "large_vessels": 1, "medium_vessels": 0, "small_vessels": 0,
+     "moving": 1, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 1,
+     "clustering": "None.",
+     "confidence": "medium",
+     "notes": "One red-hulled vessel (~25 px) at the top right of q4 has a long wake running NW through q2, so it is heading SE (outbound). This is the same ship on both sides of the tile edge and is counted once. In q2 (~x 720-870, y 940-1010) there is a bright and dark disturbance where that wake bends; it is probably wake turbulence, not a second hull, so it is not counted. Heavy slick, haze and texture artefacts on the left of q1 and q3 lower the usable area."}
+  ],
+  "summary": {
+    "large_per_image": 0.8, "medium_per_image": 0.0,
+    "stationary_large_per_image": 0.0, "moving_share": 1.0,
+    "HSAI": 0.8, "hsai_uncertainty": 0.5,
+    "qualitative": "Commercial traffic was very light: no more than one large vessel in transit per image (0, 1, 1, 1), with one inbound and two outbound, and no medium vessels. No stationary ships, queues or anchorage clusters appeared. The one notable feature was a formation of about 20 small fast craft on 2026-05-09."
+  }
+}

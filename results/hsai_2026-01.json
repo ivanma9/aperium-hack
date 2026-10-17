@@ -1,0 +1,39 @@
+{
+  "period": "2026-01",
+  "images": [
+    {"file": "hormuz_2026-01-02_ships.jpg", "cloud_pct": 3.38, "usable_fraction": 0.85,
+     "large_vessels": 4, "medium_vessels": 3, "small_vessels": 5,
+     "moving": 6, "stationary": 1,
+     "heading_inbound_NW": 4, "heading_outbound_SE": 2,
+     "clustering": "None. Vessels are spread along the lanes in q2, the upper part of q1 and q3; there is no stationary grouping.",
+     "confidence": "medium",
+     "notes": "moving/stationary counts cover large and medium vessels only. Large: q1 (975,350) heading W; q2 (460,376) red hull heading W; q2 (320,963) red tanker heading SE; q3 (600,135) red tanker heading ENE (counted as outbound). Medium: q2 (355,173) and q2 (90,332), both with wakes heading W; q4 (1400,1110) red hull with no visible wake, inside a cloudy area (stationary). Small: wake streaks at q2 (530,352), (875,622), (722,822), q2 (220,263) and q4 (815,35). Not counted: dot at q1 (730,515), green pixel at q2 (262,393), faint streak at q4 (80,540). Heavy cumulus and shadow over the right half of q4 and the top of q2, with scattered cloud in q3 east."},
+    {"file": "hormuz_2026-01-07_ships.jpg", "cloud_pct": 0.02, "usable_fraction": 0.99,
+     "large_vessels": 3, "medium_vessels": 6, "small_vessels": 2,
+     "moving": 9, "stationary": 0,
+     "heading_inbound_NW": 5, "heading_outbound_SE": 4,
+     "clustering": "None. In q4 three outbound vessels run in a loose line on the SE lane (normal lane traffic, not a queue).",
+     "confidence": "high",
+     "notes": "Clear image. Large: q1 (968,455) tanker heading W; q2 (385,300) red hull heading W; q4 (1125,735) heading SE. Medium: q1 (1165,325) W, q1 (340,635) W/SW, q3 (12,272) W, q2 (878,1128) SE, q4 (1032,488) SE, q4 (1247,737) SE. Small: q3 (36,450) and q3 (377,640), both with wakes. Not counted: single bright dot at q4 (93,77)."},
+    {"file": "hormuz_2026-01-17_ships.jpg", "cloud_pct": 1.54, "usable_fraction": 0.88,
+     "large_vessels": 2, "medium_vessels": 1, "small_vessels": 0,
+     "moving": 3, "stationary": 0,
+     "heading_inbound_NW": 1, "heading_outbound_SE": 2,
+     "clustering": "None.",
+     "confidence": "medium",
+     "notes": "Very sparse traffic; q1 is empty. Large: q4 (1093,340) white hull heading SE; q4 (1115,697) red tanker heading SE. Medium: q2 (235,270) heading W. Not counted (probably cloud fragments): star-shaped bright spot at q3 (372,535) and small blob at q4 (1120,880). Cloud and shadow cover the lower part of q3 and q4."},
+    {"file": "hormuz_2026-01-22_ships.jpg", "cloud_pct": 0.16, "usable_fraction": 0.95,
+     "large_vessels": 3, "medium_vessels": 2, "small_vessels": 0,
+     "moving": 5, "stationary": 0,
+     "heading_inbound_NW": 3, "heading_outbound_SE": 2,
+     "clustering": "None. Two inbound vessels sit close together in central q2 (927,402) and (995,531), both under way.",
+     "confidence": "medium",
+     "notes": "Light haze and dense whitecap speckle across the whole scene, so small boats would be hard to pick out. Large: q2 (927,402) heading NW; q2 (1425,1045) heading NW; q1 (1480,1035) near the q1/q2 edge, heading ENE (outbound; counted once). Medium: q2 (995,531) heading W; q2 (265,1090) heading E (outbound). q3 and q4 show no vessels."}
+  ],
+  "summary": {
+    "large_per_image": 3.29, "medium_per_image": 3.21,
+    "stationary_large_per_image": 0.0, "moving_share": 0.96,
+    "HSAI": 4.89, "hsai_uncertainty": 1.5,
+    "qualitative": "Traffic is light-to-moderate: roughly 3 large and 3 medium vessels per scene, with counts ranging from 3 (Jan 17) to 9 (Jan 7) large plus medium vessels. Almost every vessel is under way with a clear wake, split between inbound (W/NW) and outbound (E/SE) lanes, and no anchorage, queue or cluster of stationary ships is visible in any image."
+  }
+}

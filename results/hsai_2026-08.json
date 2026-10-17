@@ -1,0 +1,35 @@
+{
+  "period": "2026-08",
+  "images": [
+    {"file": "hormuz_2026-08-07_ships.jpg", "cloud_pct": 0.0, "usable_fraction": 0.95,
+     "large_vessels": 0, "medium_vessels": 2, "small_vessels": 0,
+     "moving": 2, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 1,
+     "clustering": "None; only 2 isolated vessels in the whole box.",
+     "confidence": "medium", "notes": "q4: red-hulled vessel (~10-12 px) about 2 km SSE of the southern Quoin islet, with its wake trailing NNW, so it is heading SSE (outbound). q3 (~470,725): bright ~10 px vessel with a long wake trailing SSW, so it is heading NNE; that is not clearly NW or SE, so it is not given a heading. q4: a long straight bright wake from about (680,930) runs SE to the bottom tile edge, but no hull is visible, so it is not counted. q4 (~100,740): a faint short linear streak, possibly a small boat wake, not counted. Lots of slicks/surface-film lines and some glint in q3, but the water is readable."},
+    {"file": "hormuz_2026-08-10_ships.jpg", "cloud_pct": 0.0, "usable_fraction": 0.93,
+     "large_vessels": 0, "medium_vessels": 1, "small_vessels": 0,
+     "moving": 0, "stationary": 1,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 0,
+     "clustering": "None.",
+     "confidence": "medium", "notes": "Only vessel: red-hulled ~10 px ship SSE of the southern Quoin islet (q4 ~570,900), almost the same spot as on 08-07, with no clear wake, so counted stationary. q3 has bright streaky features (probably thin cloud or glint on slicks) despite the 0% mask. q1 bottom edge has odd bright shapes, treated as artefacts. Faint speckles in q4 (~1050-1190, 930-950) and q3 bottom (~1060-1150, 1140-1180) may be small boats or whitecaps; not counted. q4 east edge has small cloud patches."},
+    {"file": "hormuz_2026-08-25_ships.jpg", "cloud_pct": 2.37, "usable_fraction": 0.8,
+     "large_vessels": 0, "medium_vessels": 1, "small_vessels": 0,
+     "moving": 1, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 1,
+     "clustering": "None.",
+     "confidence": "medium", "notes": "Cloud looks much higher than the 2.37% mask: q2 is about 35% covered by broken cumulus and shadow, q4 has a large cloud in the bottom-centre plus scattered cumulus to the east, and there is some in q1's NE corner. Red-hulled ~10 px vessel at q4 (~558,818), slightly NW of its earlier positions, with a faint short trace to the NW, so read as heading SE (wake detection uncertain). Possible tiny bright marks with linear traces at q3 (~1110,930), q4 (~50,285) and q2 (~820,860); too small or uncertain, not counted. The bright patches in q1 SW and q3 NW are slick or glint features, not vessels."},
+    {"file": "hormuz_2026-08-30_ships.jpg", "cloud_pct": 1.07, "usable_fraction": 0.8,
+     "large_vessels": 0, "medium_vessels": 2, "small_vessels": 2,
+     "moving": 4, "stationary": 0,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 1,
+     "clustering": "None.",
+     "confidence": "medium", "notes": "Haze over the west half of q1 and q3, and broken cloud in q3's west and SW. q4: red-hulled ~10 px vessel at (~545,815) with a long linear wake trailing WNW, so it is heading ESE (outbound). q1 (~560,740): ~8 px vessel with a long wake trailing SSW, so it is heading NNE (direction not clearly NW or SE). q1 (~925,603): small vessel (~4 px) with its wake trailing east, heading W. q2 (~805,545): small vessel (~3-4 px) with its wake trailing WNW, heading ESE. Possible tiny marks at q3 (~40,550) in haze, q4 (~440,48) and q4 (~1430,1108); not counted."}
+  ],
+  "summary": {
+    "large_per_image": 0.0, "medium_per_image": 1.73,
+    "stationary_large_per_image": 0.0, "moving_share": 0.83,
+    "HSAI": 0.87, "hsai_uncertainty": 0.6,
+    "qualitative": "Traffic was extremely light in all four images. No large vessels (150 m or more) were seen; each image had only 1-2 medium vessels and a few small craft. A red-hulled medium vessel appears near the southern Quoin islet in every image, moving on 3 of the 4 dates. There are no queues, anchorage clusters or groups of stationary ships. Moving share uses only large and medium vessels (5 of 6 had wakes), and the image 3 wake is uncertain."
+  }
+}

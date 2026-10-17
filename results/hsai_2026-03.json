@@ -1,0 +1,27 @@
+{
+  "period": "2026-03",
+  "images": [
+    {"file": "hormuz_2026-03-18_ships.jpg", "cloud_pct": 0.04, "usable_fraction": 0.95,
+     "large_vessels": 0, "medium_vessels": 7, "small_vessels": 8,
+     "moving": 6, "stationary": 1,
+     "heading_inbound_NW": 1, "heading_outbound_SE": 4,
+     "clustering": "No queues or anchorage clusters. Vessels are spread thinly across the southern half, mostly in the q3/q4 lane area. There is a loose group of 4-5 small craft in q3 around the burning vessel.",
+     "confidence": "medium",
+     "moving_stationary_note": "moving and stationary count large plus medium vessels only",
+     "notes": "No hull is clearly 15 px or longer. The medium vessels with wakes are at q3 (1395,395), q4 (920,665), q4 (298,190), q4 (1285,100), q4 (1400,80) and q2 (270,1120). One vessel at q3 (937,933) has a red/orange hot spot and a large dark smoke plume drifting NE. It looks like a vessel on fire, has no wake and is counted as medium stationary. The small craft are at q3 (665,698), (707,727), (790,912, bright with a wake), (805,1000) and (953,803), and at q4 (1425,522), (1400,1000) and (145,393). Uncertain dots that were not counted are at q2 (980,860), (1155,860), (1100,345) and (1400,660), q1 (1075,110) and q4 (515,1190). Scattered small cumulus, haze in q1/q2 and the smoke plume cover about 5% of the water. Several headings are ambiguous because the wakes are faint."},
+    {"file": "hormuz_2026-03-28_ships.jpg", "cloud_pct": 0.0, "usable_fraction": 0.95,
+     "large_vessels": 0, "medium_vessels": 1, "small_vessels": 0,
+     "moving": 0, "stationary": 1,
+     "heading_inbound_NW": 0, "heading_outbound_SE": 0,
+     "clustering": "None. The image is almost empty of vessels.",
+     "confidence": "medium",
+     "moving_stationary_note": "moving and stationary count large plus medium vessels only",
+     "notes": "Dense whitecap speckle covers all tiles, which makes it hard to pick out small craft. Single bright pixels were ignored. The only probable vessel is at q3 (~968,917): a small dark/red-tipped object with a long dark streak (smoke, or possibly a slick) running about 150-200 px to the NE. There is no bright V-wake, so it is counted as medium stationary with low certainty. A faint wake-like double streak at q3 (~300,940) has no visible hull and was not counted. q4 shows only the Quoin islets and no vessels."}
+  ],
+  "summary": {
+    "large_per_image": 0.0, "medium_per_image": 4.21,
+    "stationary_large_per_image": 0.0, "moving_share": 0.75,
+    "HSAI": 2.1, "hsai_uncertainty": 1.8,
+    "qualitative": "Traffic in the box is very light in both images. No large tankers or carriers (15 px or longer) were seen, and only a handful of medium vessels are present. On 03-18 about 7 medium vessels were seen, mostly moving east/southeast, plus a few small craft. On 03-28 essentially nothing was seen beyond one doubtful object. Both images show a vessel with a dark smoke-like plume, and there is no anchorage or queue clustering."
+  }
+}

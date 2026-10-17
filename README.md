@@ -1,4 +1,5 @@
-<h1 align="center">Aperium</h1>
+<h1 align="center">Tidemark</h1>
+<h3 align="center">for Aperium hackathon</h3>
 
 <p align="center">
   <strong>Energy-flow intelligence around the Strait of Hormuz.</strong><br>

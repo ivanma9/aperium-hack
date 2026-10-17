@@ -5,6 +5,10 @@ This is a run of the pipeline in [prompts/cpi_from_hormuz.md](../prompts/cpi_fro
 - **Stage 2** forecast Energy and All Items CPI month-over-month. Each of Jan â€“ Sep was forecast with that month held out (leave-one-out), using the other 8 months as examples, and October 2026 was forecast using all 9: [forecast_*.md](.).
 - The feature table is in [features.md](features.md).
 
+![CPI forecast from satellite images only vs actual](forecast_vs_actual.png)
+
+*Forecasts use satellite ship counts only, with no price, news or economic data. Blue is the actual CPI and orange is the forecast with its 80% range. The bottom panel is the monthly ship count measured from the images. Regenerate with `python scripts/plot_results.py`.*
+
 ## Leave-one-out results
 
 | Month | Energy actual | Energy forecast | Energy 80% range | Energy error | In range | All Items actual | All Items forecast | All Items 80% range | All Items error | In range |
@@ -97,19 +101,19 @@ month | HSAI_prev | HSAI_curr | HSAI_change_% | unc_curr | stat_large_prev | sta
 
 ## B. Stage 1 ship counts by month
 
-| Month | Images | Large / image | Medium / image | HSAI ± unc | Moving share | Per-image large+medium |
+| Month | Images | Large / image | Medium / image | HSAI Â± unc | Moving share | Per-image large+medium |
 |---|---|---|---|---|---|---|
-| 2025-12 | 4 | 3.64 | 5.44 | 6.36 ± 2.0 | 0.91 | 2025-12-03: 3+6, 2025-12-13: 4+4, 2025-12-23: 6+7, 2025-12-30: 1+4 |
-| 2026-01 | 4 | 3.29 | 3.21 | 4.89 ± 1.5 | 0.96 | 2026-01-02: 4+3, 2026-01-07: 3+6, 2026-01-17: 2+1, 2026-01-22: 3+2 |
-| 2026-02 | 3 | 2.59 | 10.23 | 7.71 ± 2.5 | 0.97 | 2026-02-16: 1+13, 2026-02-21: 2+9, 2026-02-26: 4+7 |
-| 2026-03 | 2 | 0.0 | 4.21 | 2.1 ± 1.8 | 0.75 | 2026-03-18: 0+7, 2026-03-28: 0+1 |
-| 2026-04 | 3 | 0.0 | 0.33 | 0.17 ± 0.5 | 1.0 | 2026-04-02: 0+1, 2026-04-07: 0+0, 2026-04-17: 0+0 |
-| 2026-05 | 4 | 0.8 | 0.0 | 0.8 ± 0.5 | 1.0 | 2026-05-02: 0+0, 2026-05-09: 1+0, 2026-05-17: 1+0, 2026-05-29: 1+0 |
-| 2026-06 | 4 | 0.25 | 0.36 | 0.43 ± 0.5 | 1.0 | 2026-06-01: 1+0, 2026-06-11: 0+1, 2026-06-18: 0+0, 2026-06-21: 0+0 |
-| 2026-07 | 4 | 0.0 | 0.52 | 0.26 ± 0.5 | 1.0 | 2026-07-06: 0+1, 2026-07-11: 0+0, 2026-07-21: 0+1, 2026-07-26: 0+0 |
-| 2026-08 | 4 | 0.0 | 1.73 | 0.87 ± 0.6 | 0.83 | 2026-08-07: 0+2, 2026-08-10: 0+1, 2026-08-25: 0+1, 2026-08-30: 0+2 |
-| 2026-09 | 4 | 0.0 | 1.29 | 0.64 ± 0.4 | 0.6 | 2026-09-04: 0+2, 2026-09-09: 0+1, 2026-09-19: 0+1, 2026-09-29: 0+1 |
-| 2026-10 | 2 | 0.0 | 0.52 | 0.26 ± 0.5 | 0.0 | 2026-10-04: 0+1, 2026-10-09: 0+0 |
+| 2025-12 | 4 | 3.64 | 5.44 | 6.36 Â± 2.0 | 0.91 | 2025-12-03: 3+6, 2025-12-13: 4+4, 2025-12-23: 6+7, 2025-12-30: 1+4 |
+| 2026-01 | 4 | 3.29 | 3.21 | 4.89 Â± 1.5 | 0.96 | 2026-01-02: 4+3, 2026-01-07: 3+6, 2026-01-17: 2+1, 2026-01-22: 3+2 |
+| 2026-02 | 3 | 2.59 | 10.23 | 7.71 Â± 2.5 | 0.97 | 2026-02-16: 1+13, 2026-02-21: 2+9, 2026-02-26: 4+7 |
+| 2026-03 | 2 | 0.0 | 4.21 | 2.1 Â± 1.8 | 0.75 | 2026-03-18: 0+7, 2026-03-28: 0+1 |
+| 2026-04 | 3 | 0.0 | 0.33 | 0.17 Â± 0.5 | 1.0 | 2026-04-02: 0+1, 2026-04-07: 0+0, 2026-04-17: 0+0 |
+| 2026-05 | 4 | 0.8 | 0.0 | 0.8 Â± 0.5 | 1.0 | 2026-05-02: 0+0, 2026-05-09: 1+0, 2026-05-17: 1+0, 2026-05-29: 1+0 |
+| 2026-06 | 4 | 0.25 | 0.36 | 0.43 Â± 0.5 | 1.0 | 2026-06-01: 1+0, 2026-06-11: 0+1, 2026-06-18: 0+0, 2026-06-21: 0+0 |
+| 2026-07 | 4 | 0.0 | 0.52 | 0.26 Â± 0.5 | 1.0 | 2026-07-06: 0+1, 2026-07-11: 0+0, 2026-07-21: 0+1, 2026-07-26: 0+0 |
+| 2026-08 | 4 | 0.0 | 1.73 | 0.87 Â± 0.6 | 0.83 | 2026-08-07: 0+2, 2026-08-10: 0+1, 2026-08-25: 0+1, 2026-08-30: 0+2 |
+| 2026-09 | 4 | 0.0 | 1.29 | 0.64 Â± 0.4 | 0.6 | 2026-09-04: 0+2, 2026-09-09: 0+1, 2026-09-19: 0+1, 2026-09-29: 0+1 |
+| 2026-10 | 2 | 0.0 | 0.52 | 0.26 Â± 0.5 | 0.0 | 2026-10-04: 0+1, 2026-10-09: 0+0 |
 
 - **2025-12:** Traffic was light to moderate and varied a lot between images: from 1 large and 4 medium vessels on 30 Dec to 6 large and 7 medium on 23 Dec. Almost all large and medium vessels were under way along the separation lanes, with inbound and outbound traffic roughly balanced (12 vs 16). Only one stationary large vessel was seen across the four images, and there were no anchorage queues or clusters.
 - **2026-01:** Traffic is light-to-moderate: roughly 3 large and 3 medium vessels per scene, with counts ranging from 3 (Jan 17) to 9 (Jan 7) large plus medium vessels. Almost every vessel is under way with a clear wake, split between inbound (W/NW) and outbound (E/SE) lanes, and no anchorage, queue or cluster of stationary ships is visible in any image.

@@ -43,6 +43,7 @@ So January's forecast uses the change in shipping from the **Dec 2025 → Jan 20
 | `results/hsai_<month>.json` | Stage 1 ship counts for each month (11 files) |
 | `results/forecast_<month>.md` | Stage 2 forecast for each held-out month, plus Oct (10 files) |
 | `results/report.md` | **The final summary:** forecast vs actual for every month, average error, how often the actual landed in the 80% range, and the October 2026 forecast |
+| `results/forecast_vs_actual.png` | Chart of actual vs image-only forecast (with 80% range) for Energy and All Items, plus the monthly ship count from the images, embedded in the report |
 
 ---
 
@@ -71,7 +72,9 @@ Run the Hormuz → CPI pipeline described in prompts/cpi_from_hormuz.md. Read th
    - the October 2026 forecast for both targets
    - a short honest assessment: did the method catch March and June, and is the relationship found consistent across the 9 runs?
 
-Don't change the templates. If something fails, tell me rather than working around it silently.
+7. Chart. Run .venv/Scripts/python.exe scripts/plot_results.py. It reads results/forecast_*.md, results/hsai_*.json and the CPI CSV and writes results/forecast_vs_actual.png, titled as a forecast from satellite images only: Energy and All Items panels (actual vs forecast with 80% range), and below them the monthly ship count from the images. Embed it near the top of results/report.md as ![CPI forecast from satellite images only vs actual](forecast_vs_actual.png). Open the PNG and check that labels don't overlap.
+
+Write every file as UTF-8. Don't change the templates. If something fails, tell me rather than working around it silently.
 ```
 
 ---

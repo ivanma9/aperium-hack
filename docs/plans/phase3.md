@@ -253,3 +253,13 @@ Authz, race and payment checklists are N/A: there are no users or concurrency, a
 - Build the baseline without spending extra PU. Run the Phase 2 commit's `detect_ships` on the passes Phase 3 caches, against the Phase 2 Sentinel Hub reference in `output/reference_*.npy`. The fallback changed the detector, so the old CSV is not the baseline.
 - Then require ±1 per pass.
 - Visually check the 06-12 overlay (S1A, the series maximum) and the persistent bright target at (-97.166, 27.861).
+
+**A7. The absorbed-berth rule needs `p25 > SHIP_DB`.**
+- The rule is: a pixel of the water mask built from the `min` reference, with `p25 > SHIP_DB` and `p25 - min > ABSORBED_DB`.
+- `p25 - min > 10 dB` alone is wrong. On real Corpus Christi data it flagged 287,794 pixels, almost all speckle:
+  the minimum of ~15 passes of open water sits more than 10 dB under p25 on most of it.
+- Requiring p25 itself to be ship-bright keeps only what a ship moored in more than ~75% of the reference passes can produce.
+- The log line states the full rule, the number of blobs and the area of the largest one, and the map is rewritten every run.
+- Test 21c covers it: speckle and sea state alone flag nothing.
+- Also from the review (supersedes A1's list of reference arrays): a reference npz holds `p25`, `p50`, `p75`, `min` and `n_samples`,
+  and no water mask, which is recomputed on every run. `reference_id` also hashes the exclude boxes, `MIN_REF_PASSES` and `REFERENCE_FORMAT`.

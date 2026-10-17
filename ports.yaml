@@ -1,0 +1,19 @@
+# bbox: [lon0, lat0, lon1, lat1] (WGS84).
+# Optional per port: reference: {from: "YYYY-MM-DDTHH:MM:SSZ", to: "..."} overrides the window in portwatch/config.py
+# (explicit Z or +00:00 required).
+# Optional per port: exclude: a list of {bbox: [lon0, lat0, lon1, lat1], note: "..."}. Water pixels whose centre is
+# inside a box are never counted (smooth runway asphalt reads as water).
+corpus_christi:
+  bbox: [-97.30, 27.75, -96.95, 27.90]
+  notes: Ship channel, Ingleside terminals, Port Aransas inlet and the near-shore Gulf anchorage (Phase 2 box).
+houston_ship_channel:
+  bbox: [-95.30, 29.60, -94.95, 29.78]
+  notes: Upper channel and terminals, Battleship Texas to the turning basin. The Galveston offshore anchorage can be added later as its own port.
+  exclude:
+    - bbox: [-95.295, 29.635, -95.262, 29.660]
+      note: William P. Hobby Airport runways (smooth asphalt reads as water)
+    - bbox: [-95.175, 29.600, -95.140, 29.625]
+      note: Ellington Airport runways
+loop:
+  bbox: [-90.15, 28.80, -89.90, 28.95]
+  notes: Louisiana Offshore Oil Port buoys and anchorage.

@@ -13,3 +13,6 @@ sentinel_cache/*
 !sentinel_cache/*.csv
 !sentinel_cache/*_params.json
 logs/
+HANDOFF.md
+Main.dc.html
+Tidemark-preview.html

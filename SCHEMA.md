@@ -34,7 +34,7 @@ Region ids: `corpus_christi`, `hormuz`.
 | `{region}/events.jsonl` | `GET /api/regions/{region}/events?since=&limit=` (newest first) | `event` (one per line) | append-only |
 | `{region}/metrics.json` | `GET /api/regions/{region}/metrics` | `metrics` | 10 s |
 | `{region}/sentinel.json` | `GET /api/regions/{region}/sentinel` | `sentinel` | 10 min |
-| `{region}/<image>.png` | `GET /files/{image_path}` | — | per radar pass |
+| `{region}/<image>.png` | `GET /api/files/{image_path}` | — | per radar pass |
 | `cpi_nowcast.json` | `GET /api/cpi_nowcast` | `cpi_nowcast` | 30 min |
 | — | `GET /api/cpi/scenario?disruption=0.3&days=10` (alias `/cpi/scenario`) | `cpi_scenario` | on request |
 | — | `GET /api/health` (file mtimes), `GET /api/schema/{name}` | — | — |
@@ -92,7 +92,7 @@ VLCC 2.0 M, Suezmax 1.0 M, Aframax 0.7 M, product 0.3 M bbl).
 
 ### {region}/sentinel.json
 `region`, `image` (null when no radar image) = `{acquired_utc, satellite, image_path
-(relative to outputs/latest/, serve via /files/), bbox, ship_count}`, `next_pass_note`.
+(relative to outputs/latest/, serve via /api/files/), bbox, ship_count}`, `next_pass_note`.
 Sentinel-1 passes Corpus Christi about every 12 days; Hormuz has no radar pipeline yet (`image: null`).
 
 ### cpi_nowcast.json

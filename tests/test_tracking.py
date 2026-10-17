@@ -1,6 +1,6 @@
 import unittest
 
-from aperium.tracking import Store, normalize
+from aperium.tracking import matching_ports, normalize
 
 
 def message(**overrides):
@@ -33,26 +33,12 @@ class TrackingTests(unittest.TestCase):
                     "Message": {kind: {"Sog": 2}}}
             self.assertEqual(normalize(data, 100)["latitude"], 25.16)
 
-    def test_deduplication_out_of_order_staleness_and_restart(self):
-        import tempfile
-        from pathlib import Path
-        with tempfile.TemporaryDirectory() as directory:
-            path = str(Path(directory) / 'test.sqlite3')
-            store = Store(path)
-            newer = normalize(message(), 200)
-            store.save(newer)
-            store.save(newer)
-            store.save(normalize(message(Latitude=25.2), 100))
-            self.assertEqual(len(store.history('123456789', 100)), 2)
-            self.assertEqual(store.vessels(250, 60)[0]['latitude'], 25.16)
-            self.assertFalse(store.vessels(250, 60)[0]['stale'])
-            self.assertTrue(store.vessels(261, 60)[0]['stale'])
-            store.close()
-            store = Store(path)
-            self.assertEqual(len(store.vessels(250, 60)), 1)
-            store.save(normalize(message(Latitude=26), 300))
-            self.assertFalse(store.vessels(310, 60)[0]['inside_geofence'])
-            store.close()
+    def test_matching_ports(self):
+        ports = [{"id": "a", "bounds_lat_lon": [[25.0, 56.0], [25.5, 56.5]]},
+                 {"id": "b", "bounds_lat_lon": [[25.4, 56.4], [26.0, 57.0]]}]
+        self.assertEqual(matching_ports(25.2, 56.2, ports), ["a"])
+        self.assertEqual(matching_ports(25.45, 56.45, ports), ["a", "b"])
+        self.assertEqual(matching_ports(24, 56.2, ports), [])
 
 
 if __name__ == '__main__':

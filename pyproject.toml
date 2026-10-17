@@ -23,6 +23,7 @@ dependencies = [
     "shapely>=2.0.7",
     "matplotlib>=3.9.4",
     "global-land-mask>=1.0.0",
+    "psycopg[binary,pool]>=3.2,<4",
 ]
 
 [dependency-groups]

@@ -1,6 +1,7 @@
 "use client";
 
 import { useShallow } from "zustand/react/shallow";
+import { liveView } from "@/lib/aperium/cpi";
 import { signed, utcClock } from "@/lib/format";
 import { selectGeography } from "@/store/tidemark";
 import { ScenarioSelect } from "./ScenarioSelect";
@@ -51,31 +52,49 @@ export function LocationBar() {
 }
 
 export function OutcomeCard() {
-  const { outlook, scenarioId, geography, flow } = useTidemark(
-    useShallow((s) => ({ outlook: s.outlook, scenarioId: s.scenarioId, geography: selectGeography(s), flow: s.flow })),
+  const { outlook, scenarioId, geography, flow, cpiLive } = useTidemark(
+    useShallow((s) => ({ outlook: s.outlook, scenarioId: s.scenarioId, geography: selectGeography(s), flow: s.flow, cpiLive: s.cpiLive })),
   );
+  const live = liveView(cpiLive);
   const { runScenario } = useTidemarkActions();
-  const pct = outlook.energy_pct;
+  const pct = live ? live.energyPct : outlook.energy_pct;
   const color = pct > 0.05 ? "var(--accent)" : pct < -0.05 ? "var(--teal)" : "var(--text)";
   return (
     <section className="ov ov-bottom glass outcome" aria-label="Outcome">
-      <h2 className="heading">US energy CPI, one-month outlook</h2>
+      <h2 className="heading">US energy CPI, one-month outlook{" "}
+        {live ? <span className="src-tag">live backend</span> : <span className="src-tag sim">simulated</span>}
+      </h2>
       <div className="outcome-value" style={{ color }}>
         {signed(pct, 1)}%
       </div>
       <div className="outcome-meta">
         <span>
-          Headline <span className="mono">{signed(outlook.headline_pp, 2)} pp</span>
+          Headline <span className="mono">{signed(live ? live.headlinePp : outlook.headline_pp, 2)} pp</span>
         </span>
         <span>
-          Core spillover <span className="mono">{signed(outlook.core_pp, 2)} pp</span>{" "}
-          <span style={{ color: "rgba(232,238,243,0.55)" }}>builds over 6–12 mo</span>
+          {live ? (
+            <>
+              Range{" "}
+              <span className="mono">
+                {signed(live.energyLowPct, 1)}% to {signed(live.energyHighPct, 1)}%
+              </span>{" "}
+              <span style={{ color: "rgba(232,238,243,0.55)" }}>core spillover not modelled</span>
+            </>
+          ) : (
+            <>
+              Core spillover <span className="mono">{signed(outlook.core_pp, 2)} pp</span>{" "}
+              <span style={{ color: "rgba(232,238,243,0.55)" }}>builds over 6–12 mo</span>
+            </>
+          )}
         </span>
       </div>
       <div className="outcome-controls">
         <ScenarioSelect value={scenarioId} onChange={runScenario} />
         <span className="caption">
-          {flow.flow_mbd.toFixed(1)} mb/d observed · {geography.name}
+          {flow.flow_mbd.toFixed(1)} mb/d observed · {geography.name}{" "}
+          <a className="src-link" href="/factors">
+            Adjust factors →
+          </a>
         </span>
       </div>
     </section>

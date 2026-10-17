@@ -156,3 +156,13 @@ describe("mock feed", () => {
     expect(out.chain.bypassReady).toBe(0);
   });
 });
+
+describe("cpiLive", () => {
+  it("starts loading and is replaced by the setter, leaving the mock outlook intact", async () => {
+    const { store, snapshot } = await setup();
+    expect(store.getState().cpiLive).toEqual({ data: null, status: "loading" });
+    store.getState().setCpiLive({ data: null, status: "unavailable", reason: "down" });
+    expect(store.getState().cpiLive.status).toBe("unavailable");
+    expect(store.getState().outlook).toEqual(snapshot.outlook);
+  });
+});

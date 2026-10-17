@@ -174,7 +174,7 @@ export function FactorPanel() {
               {res.supply.chokepoints.filter((k) => k.status !== "ok").map((k) => <div key={k.id} className="fp-warn">{k.name}: {k.reason}</div>)}
               {main.contributions.length > 0 && (
                 <div className="bars">
-                  <div className="caption">Contributions, current month (energy-CPI points, central)</div>
+                  <div className="caption">Contributions, current month (energy CPI %, central)</div>
                   {main.contributions.map((c) => (
                     <div key={c.id}>
                       <div className="row"><span>{c.label}</span><span className="mono">{pct(c.current_month_pct, 3)}</span></div>

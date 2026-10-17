@@ -1,4 +1,5 @@
 import { createStore } from "zustand/vanilla";
+import type { CpiLive } from "@/lib/aperium/cpi";
 import type { AisVessel, CollectorMetrics, CollectorStatus } from "@/lib/aperium/client";
 import type {
   CpiRecomputed,
@@ -57,6 +58,8 @@ export interface TidemarkState {
   vessels: Record<string, Vessel>;
   vesselOrder: string[];
   outlook: CpiRecomputed;
+  /** Real backend CPI for the current geography + scenario; the mock `outlook` is the fallback. */
+  cpiLive: CpiLive;
 
   collector: CollectorState;
   ais: AisState;
@@ -68,6 +71,7 @@ export interface TidemarkActions {
   setGeography(id: string): void;
   setScenario(id: string): void;
   setOutlook(outlook: CpiRecomputed): void;
+  setCpiLive(cpiLive: CpiLive): void;
   setView(view: ViewId): void;
   toggleHud(): void;
   togglePaused(): void;
@@ -116,6 +120,7 @@ export function createTidemarkStore(geographies: readonly Geography[], initial: 
       hovered: null,
       selectedPortId: null,
       lastTopic: "flow.estimate.updated",
+      cpiLive: { data: null, status: "loading" },
       collector: { reachable: null, status: null, metrics: null },
       ais: { connected: null, vessels: {} },
 
@@ -167,6 +172,7 @@ export function createTidemarkStore(geographies: readonly Geography[], initial: 
       setOutlook: (outlook) => {
         if (outlook.scenario === get().scenarioId && isCurrent(outlook.location)) set({ outlook });
       },
+      setCpiLive: (cpiLive) => set({ cpiLive }),
       setView: (view) => set({ view }),
       toggleHud: () => set((s) => ({ hudVisible: !s.hudVisible })),
       togglePaused: () => set((s) => ({ paused: !s.paused })),

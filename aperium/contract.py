@@ -206,7 +206,7 @@ CPI_FACTORS = _obj({
 CONTRIBUTION = _obj({
     "id": {"type": "string"}, "label": {"type": "string"},
     "kind": {"type": "string", "enum": ["baseline", "chokepoint", "bypass", "release"]},
-    "current_month_pct": {**NUM, "description": "Energy-CPI percent points, central case"}, "next_month_pct": NUM,
+    "current_month_pct": {**NUM, "description": "Energy-CPI percent, central case"}, "next_month_pct": NUM,
 })
 CPI_CUSTOM = _obj({
     **ENVELOPE,
@@ -215,6 +215,8 @@ CPI_CUSTOM = _obj({
         "days": NUM, "gasoline_share": NUM, "eia_move": {"type": "boolean"}, "release": {"type": "boolean"},
         "release_mbd": NUM, "release_scale": NUM, "sensitivity_central": NUM, "pass_through": NUM, "lag_days": NUM,
         "baseline_transits": NNUM,
+        "energy_weight": {**NUM, "description": "Energy's relative importance in all-items CPI, percent (headline pp = energy % x weight / 100)"},
+        "reference_gasoline_usd_gal": {**NUM, "description": "Retail gasoline price used where a region has no EIA price (baseline.retail_gasoline_this_month_usd_gal is null)"},
     }, description="Resolved values after defaults; per-chokepoint values are in supply.chokepoints"),
     "supply": _obj({
         "chokepoints": {"type": "array", "items": _obj({

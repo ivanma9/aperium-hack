@@ -5,6 +5,7 @@ import { useShallow } from "zustand/react/shallow";
 import { DEFAULT_MODEL_PARAMS } from "@/config/model";
 import { getScenario } from "@/config/scenarios";
 import { NAV_STATUS } from "@/lib/aperium/client";
+import { liveView } from "@/lib/aperium/cpi";
 import { signed } from "@/lib/format";
 import { forecastSupply } from "@/lib/model";
 import { aisInGeography, selectGeography, type CollectorState, type ShipRef, type ViewId } from "@/store/tidemark";
@@ -466,28 +467,59 @@ function SupplyPanel() {
 /* ── CPI ──────────────────────────────────────────────── */
 
 function CpiPanel() {
-  const { outlook, loc } = useTidemark(useShallow((s) => ({ outlook: s.outlook, loc: selectGeography(s) })));
+  const { outlook, loc, cpiLive } = useTidemark(
+    useShallow((s) => ({ outlook: s.outlook, loc: selectGeography(s), cpiLive: s.cpiLive })),
+  );
+  const live = liveView(cpiLive);
   const c = outlook.chain;
   const params = DEFAULT_MODEL_PARAMS;
   const motorPassThrough = params.components.find((k) => k.driver === "gasoline")?.passThrough1m ?? 0;
 
-  const chain = [
-    { label: "Net supply loss", note: `transit gap after ${loc.bypassLabel}`, val: `${c.netMbd.toFixed(2)} mb/d` },
-    { label: "Brent", note: `${params.brentPctPerMbd}% per mb/d + risk premium`, val: `$${c.brentUsd.toFixed(1)}` },
-    {
-      label: "US gasoline, pump",
-      note: `≈${(params.gasUsdPerBrentUsd * 100).toFixed(1)}¢/gal per $1/bbl · ~${Math.round(motorPassThrough * 100)}% in 30 days`,
-      val: `${signed(c.gasPct * motorPassThrough, 1)}%`,
-    },
-    { label: "Energy CPI, 1 month", note: `${c.energyWeight.toFixed(1)}% of CPI basket`, val: `${signed(c.energyPct, 1)}%` },
-    { label: "Headline CPI, 1 month", note: "direct contribution", val: `${signed(c.headlinePp, 2)} pp` },
-  ];
+  const chain = live
+    ? [
+        { label: "Net supply loss", note: `transit gap after ${loc.bypassLabel}`, val: `${live.netSupplyLossMbd.toFixed(2)} mb/d` },
+        { label: "Crude shock", note: "central case, vs. no disruption", val: `+$${live.crudeShockUsdBbl.toFixed(1)}/bbl` },
+        {
+          label: "US gasoline, pump",
+          note: `${signed(live.gasolinePct, 1)}% of the retail price`,
+          val: `+$${live.gasolineShockUsdGal.toFixed(2)}/gal`,
+        },
+        {
+          label: "Energy CPI, 1 month",
+          note: `range ${signed(live.energyLowPct, 1)}% to ${signed(live.energyHighPct, 1)}%`,
+          val: `${signed(live.energyPct, 1)}%`,
+        },
+        { label: "Headline CPI, 1 month", note: `${live.energyWeight.toFixed(1)}% energy weight`, val: `${signed(live.headlinePp, 2)} pp` },
+      ]
+    : [
+        { label: "Net supply loss", note: `transit gap after ${loc.bypassLabel}`, val: `${c.netMbd.toFixed(2)} mb/d` },
+        { label: "Brent", note: `${params.brentPctPerMbd}% per mb/d + risk premium`, val: `$${c.brentUsd.toFixed(1)}` },
+        {
+          label: "US gasoline, pump",
+          note: `≈${(params.gasUsdPerBrentUsd * 100).toFixed(1)}¢/gal per $1/bbl · ~${Math.round(motorPassThrough * 100)}% in 30 days`,
+          val: `${signed(c.gasPct * motorPassThrough, 1)}%`,
+        },
+        { label: "Energy CPI, 1 month", note: `${c.energyWeight.toFixed(1)}% of CPI basket`, val: `${signed(c.energyPct, 1)}%` },
+        { label: "Headline CPI, 1 month", note: "direct contribution", val: `${signed(c.headlinePp, 2)} pp` },
+      ];
 
-  const maxPp = Math.max(0.01, ...c.components.map((k) => Math.abs(k.pp)));
+  const bars = live
+    ? [{ id: "motor", name: "Motor fuel", weight: live.motorFuelWeight, pp: live.headlinePp }]
+    : c.components.map((k) => ({ id: k.id, name: k.name, weight: k.weight, pp: k.pp }));
+  const maxPp = Math.max(0.01, ...bars.map((k) => Math.abs(k.pp)));
 
   return (
     <div className="panel">
-      <h2 className="heading">Flow → CPI transmission</h2>
+      <h2 className="heading">
+        Flow → CPI transmission{" "}
+        {live ? (
+          <span className="src-tag">live backend</span>
+        ) : (
+          <span className="src-tag sim" title={cpiLive.reason}>
+            {cpiLive.status === "loading" ? "simulated · loading live" : "simulated"}
+          </span>
+        )}
+      </h2>
       <ol className="chain">
         {chain.map((step, i) => {
           const last = i === chain.length - 1;
@@ -510,7 +542,7 @@ function CpiPanel() {
       </ol>
       <div className="bars">
         <div style={{ fontSize: 12, color: "rgba(232,238,243,0.65)" }}>Contribution to headline, pp</div>
-        {c.components.map((k) => (
+        {bars.map((k) => (
           <div key={k.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <div className="row" style={{ fontSize: 12 }}>
               <span style={{ color: "var(--text)" }}>
@@ -526,6 +558,15 @@ function CpiPanel() {
             </div>
           </div>
         ))}
+        {live && (
+          <div className="caption">Electricity, utility gas, fuel oil: held flat (not modelled). Core spillover: not modelled.</div>
+        )}
+      </div>
+      <div className="caption">
+        {live ? live.source : `Mock model${cpiLive.reason ? ` · live unavailable: ${cpiLive.reason}` : ""}`}{" "}
+        <a className="src-link" href="/factors">
+          Adjust factors →
+        </a>
       </div>
     </div>
   );

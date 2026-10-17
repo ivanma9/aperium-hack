@@ -2,10 +2,12 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useStore } from "zustand";
+import { getScenario } from "@/config/scenarios";
 import { aperium, subscribeVessels } from "@/lib/aperium/client";
+import { fetchCustom, liveView, scenarioToQuery } from "@/lib/aperium/cpi";
 import { createMockFeed } from "@/lib/feed/mock";
 import type { FeedClient, Snapshot } from "@/lib/feed/types";
-import type { Geography } from "@/lib/geographies";
+import { findGeography, type Geography } from "@/lib/geographies";
 import { createTidemarkStore, type TidemarkStore, type TidemarkStoreApi } from "@/store/tidemark";
 
 interface TidemarkContextValue {
@@ -14,6 +16,28 @@ interface TidemarkContextValue {
 }
 
 const TidemarkContext = createContext<TidemarkContextValue | null>(null);
+
+const cpiRequests = new WeakMap<TidemarkStoreApi, AbortController>();
+
+/** Fetch the real CPI for the store's current geography + scenario; a newer call aborts the older one. */
+function refreshCpiLive(store: TidemarkStoreApi) {
+  cpiRequests.get(store)?.abort();
+  const { geographies, geographyId, scenarioId, setCpiLive } = store.getState();
+  const query = scenarioToQuery(findGeography(geographies, geographyId).slug, getScenario(scenarioId));
+  if (!query) return setCpiLive({ data: null, status: "unavailable", reason: "No backend model for this geography" });
+  const ctrl = new AbortController();
+  cpiRequests.set(store, ctrl);
+  setCpiLive({ data: null, status: "loading" });
+  fetchCustom(query, ctrl.signal)
+    .then((data) => {
+      if (ctrl.signal.aborted) return;
+      const ok = liveView({ data, status: "ok" });
+      setCpiLive(ok ? { data, status: "ok" } : { data: null, status: "unavailable", reason: "No baseline CPI data cached" });
+    })
+    .catch((e) => {
+      if (!ctrl.signal.aborted) setCpiLive({ data: null, status: "unavailable", reason: String(e?.message ?? e) });
+    });
+}
 
 export function TidemarkProvider({
   geographies,
@@ -36,6 +60,11 @@ export function TidemarkProvider({
     if (paused) return;
     return value.feed.subscribe((e) => value.store.getState().apply(e));
   }, [paused, value]);
+
+  useEffect(() => {
+    refreshCpiLive(value.store);
+    return () => cpiRequests.get(value.store)?.abort();
+  }, [value]);
 
   useCollectorStatus(value.store, paused);
   useAisStream(value.store, paused);
@@ -101,6 +130,7 @@ export function useTidemarkActions() {
         const s = store.getState();
         if (id === s.geographyId) return;
         s.setGeography(id);
+        refreshCpiLive(store);
         const snapshot = await feed.getSnapshot(id, s.scenarioId);
         // Ignore if the user moved on before the response arrived.
         if (store.getState().geographyId === id) store.getState().hydrate(snapshot);
@@ -108,6 +138,7 @@ export function useTidemarkActions() {
       async runScenario(id: string) {
         const s = store.getState();
         s.setScenario(id);
+        refreshCpiLive(store);
         store.getState().setOutlook(await feed.runScenario(s.geographyId, id));
       },
     }),

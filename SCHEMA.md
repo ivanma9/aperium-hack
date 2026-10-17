@@ -137,8 +137,8 @@ response has the envelope (`schema_version`, `as_of_utc`, `calibrated: false`).
   `pass_through` 0-1, `lag_days` 0-30, `baseline_transits` 10-30. Returns `inputs`, `supply`
   (per-chokepoint `net_mbd`, `status`/`reason`, total net loss after release, `overlap_warning` and
   `net_supply_loss_lower_bound_mbd`), `regions[]` (`baseline`, `months` in the shock-block shape or null
-  when the region has no data, `contributions[]` in central-case energy-CPI points), `assumptions[]`,
-  `sources[]`. A live Hormuz request without usable data contributes 0 and says so in `status`/`reason`.
+  when the region has no data, `contributions[]` in central-case energy-CPI percent), `assumptions[]`,
+  `sources[]`. `inputs` also carries `energy_weight` (energy's relative importance in all-items CPI, %; headline pp = energy % x weight / 100) and `reference_gasoline_usd_gal` (price used where a region has no EIA price; otherwise `baseline.retail_gasoline_this_month_usd_gal`). A live Hormuz request without usable data contributes 0 and says so in `status`/`reason`.
 
 ## Regions
 

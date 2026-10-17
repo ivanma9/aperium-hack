@@ -188,7 +188,9 @@ def custom(p, out_dir, now=None, cfg=None, cache_dir=None):
               "release_scale": float(p.get("release_scale", cfg["offsets"].get("scale", 1.0))),
               "sensitivity_central": float(cfg["sensitivity_usd_bbl_per_pct"]["central"]),
               "pass_through": float(cfg["gasoline_pass_through"]), "lag_days": float(cfg.get("pump_lag_days", 10)),
-              "baseline_transits": p.get("baseline_transits")}
+              "baseline_transits": p.get("baseline_transits"),
+              "energy_weight": float(cfg["relative_importance"]["energy"]),
+              "reference_gasoline_usd_gal": float(cfg["reference_gasoline_usd_gal"])}
     sens = cfg["sensitivity_usd_bbl_per_pct"]
     assumptions = [
         "Chokepoint net loss = max(0, disrupted fraction x flow - bypass); the total is the sum across chokepoints minus the strategic release. One global crude -> gasoline -> energy CPI chain converts it to a price shock.",

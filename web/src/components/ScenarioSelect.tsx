@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { createPortal } from "react-dom";
 import { SCENARIOS, type ScenarioConfig } from "@/config/scenarios";
 
 function hint(s: ScenarioConfig) {
@@ -11,7 +12,15 @@ function hint(s: ScenarioConfig) {
 /**
  * Scenario picker: a button + listbox that opens upward. Keyboard: ↑/↓/Home/End
  * move, Enter/Space choose, Esc closes and returns focus; closes on outside click.
+ *
+ * The listbox is portaled to <body> with fixed positioning. Rendered inside the outcome
+ * card it couldn't frost what's behind it: the card's own backdrop-filter makes it a
+ * backdrop root, so a nested backdrop-filter doesn't blur the content behind the menu.
  */
+
+const MENU_WIDTH = 260;
+const GAP = 8;
+const GUTTER = 10;
 export function ScenarioSelect({ value, onChange }: { value: string; onChange: (id: string) => void }) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -19,10 +28,20 @@ export function ScenarioSelect({ value, onChange }: { value: string; onChange: (
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const listId = useId();
+  const [pos, setPos] = useState<{ left: number; bottom: number; width: number } | null>(null);
   const current = SCENARIOS.find((s) => s.id === value) ?? SCENARIOS[0];
 
+  /** Anchor the portaled menu above the trigger, inside the viewport. */
+  const place = () => {
+    const r = triggerRef.current?.getBoundingClientRect();
+    if (!r) return;
+    const width = Math.min(MENU_WIDTH, window.innerWidth - 2 * GUTTER);
+    const left = Math.min(Math.max(GUTTER, r.left), window.innerWidth - width - GUTTER);
+    setPos({ left, bottom: window.innerHeight - r.top + GAP, width });
+  };
   const openList = () => {
     setActive(Math.max(0, SCENARIOS.findIndex((s) => s.id === value)));
+    place();
     setOpen(true);
   };
   const close = (refocus: boolean) => {
@@ -34,15 +53,28 @@ export function ScenarioSelect({ value, onChange }: { value: string; onChange: (
     close(true);
   };
 
+  // Follow the trigger while open.
   useEffect(() => {
     if (!open) return;
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [open]);
+
+  const mounted = open && pos !== null;
+  useEffect(() => {
+    if (!mounted) return;
     listRef.current?.focus();
     const onPointerDown = (e: PointerEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (!rootRef.current?.contains(t) && !listRef.current?.contains(t)) setOpen(false);
     };
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [open]);
+  }, [mounted]);
 
   const onTriggerKeyDown = (e: KeyboardEvent) => {
     if (e.key === "ArrowUp" || e.key === "ArrowDown") {
@@ -99,43 +131,58 @@ export function ScenarioSelect({ value, onChange }: { value: string; onChange: (
         <span className="dot" style={{ background: "var(--accent)" }} />
         {current.name}
         <svg className="chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-          <path d="M2.5 4.5 L6 8 L9.5 4.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M2.5 4.5 L6 8 L9.5 4.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </button>
-      {open && (
-        <ul
-          ref={listRef}
-          id={listId}
-          role="listbox"
-          aria-label="Geopolitical scenario"
-          aria-activedescendant={`${listId}-${SCENARIOS[active].id}`}
-          tabIndex={-1}
-          className="glass scenario-list"
-          onKeyDown={onListKeyDown}
-        >
-          {SCENARIOS.map((s, i) => {
-            const selected = s.id === current.id;
-            return (
-              <li
-                key={s.id}
-                id={`${listId}-${s.id}`}
-                role="option"
-                aria-selected={selected}
-                data-active={i === active}
-                className="scenario-option"
-                onPointerEnter={() => setActive(i)}
-                onClick={() => choose(i)}
-              >
-                <span style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                  <span className="dot" style={{ background: selected ? "var(--accent)" : "rgba(232,238,243,0.35)" }} />
-                  {s.name}
-                </span>
-                <span className="hint">{hint(s)}</span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      {mounted &&
+        createPortal(
+          <ul
+            ref={listRef}
+            id={listId}
+            role="listbox"
+            aria-label="Geopolitical scenario"
+            aria-activedescendant={`${listId}-${SCENARIOS[active].id}`}
+            tabIndex={-1}
+            className="glass glass-frosted scenario-list"
+            style={{ left: pos.left, bottom: pos.bottom, width: pos.width }}
+            onKeyDown={onListKeyDown}
+          >
+            {SCENARIOS.map((s, i) => {
+              const selected = s.id === current.id;
+              return (
+                <li
+                  key={s.id}
+                  id={`${listId}-${s.id}`}
+                  role="option"
+                  aria-selected={selected}
+                  data-active={i === active}
+                  className="scenario-option"
+                  onPointerEnter={() => setActive(i)}
+                  onClick={() => choose(i)}
+                >
+                  <span style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                    <span
+                      className="dot"
+                      style={{
+                        background: selected ? "var(--accent)" : "rgba(232,238,243,0.35)",
+                      }}
+                    />
+                    {s.name}
+                  </span>
+                  <span className="hint">{hint(s)}</span>
+                </li>
+              );
+            })}
+          </ul>,
+          document.body,
+        )}
     </div>
   );
 }

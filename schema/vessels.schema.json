@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vessels.schema.json",
+  "title": "vessels",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "as_of_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC ISO-8601, e.g. 2026-10-17T19:20:00Z"
+    },
+    "calibrated": {
+      "type": "boolean",
+      "const": false
+    },
+    "region": {
+      "type": "string",
+      "enum": [
+        "corpus_christi",
+        "hormuz"
+      ]
+    },
+    "vessels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mmsi": {
+            "type": "string",
+            "pattern": "^[0-9]{9}$"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "imo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "class": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "VLCC",
+              "Suezmax",
+              "Aframax",
+              "product",
+              null
+            ],
+            "description": "By length: VLCC >= 300 m, Suezmax 250-300, Aframax 220-250, product < 220; null if length unknown"
+          },
+          "length_m": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "draft_m": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "laden": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "draft > 70% of class max draft; null if draft or class unknown"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "underway",
+              "anchored",
+              "berthed",
+              "outbound_laden"
+            ]
+          },
+          "lat": {
+            "type": "number"
+          },
+          "lon": {
+            "type": "number"
+          },
+          "speed_kn": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "heading": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "degrees true, 0-359"
+          },
+          "destination": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Zone id from regions.json, or null when outside all zones"
+          },
+          "last_seen_utc": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC ISO-8601, e.g. 2026-10-17T19:20:00Z"
+          }
+        },
+        "required": [
+          "mmsi",
+          "name",
+          "imo",
+          "class",
+          "length_m",
+          "draft_m",
+          "laden",
+          "state",
+          "lat",
+          "lon",
+          "speed_kn",
+          "heading",
+          "destination",
+          "zone",
+          "last_seen_utc"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "as_of_utc",
+    "calibrated",
+    "region",
+    "vessels"
+  ],
+  "additionalProperties": false
+}

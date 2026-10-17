@@ -1,0 +1,309 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cpi_scenario.schema.json",
+  "title": "cpi_scenario",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "as_of_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC ISO-8601, e.g. 2026-10-17T19:20:00Z"
+    },
+    "calibrated": {
+      "type": "boolean",
+      "const": false
+    },
+    "disruption_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "days": {
+      "type": "number",
+      "description": "Disruption duration in days"
+    },
+    "start_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC ISO-8601, e.g. 2026-10-17T19:20:00Z"
+    },
+    "supply_at_risk_mbd": {
+      "type": "number"
+    },
+    "bypass_capacity_mbd": {
+      "type": "number"
+    },
+    "net_supply_loss_mbd": {
+      "type": "number",
+      "description": "max(0, supply_at_risk - bypass - strategic release)"
+    },
+    "months": {
+      "type": "object",
+      "properties": {
+        "current_month": {
+          "type": "object",
+          "properties": {
+            "period": {
+              "type": "string",
+              "description": "YYYY-MM"
+            },
+            "elevated_pump_days": {
+              "type": "number",
+              "description": "Days in this month with elevated pump prices after the pass-through lag"
+            },
+            "days_in_month": {
+              "type": "integer"
+            },
+            "baseline_cpi_energy": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "low": {
+              "type": "object",
+              "properties": {
+                "crude_shock_usd_bbl": {
+                  "type": "number"
+                },
+                "gasoline_shock_usd_gal": {
+                  "type": "number"
+                },
+                "energy_cpi_shock_pct": {
+                  "type": "number",
+                  "description": "Month-average impact on the energy CPI, percent, on top of the baseline"
+                },
+                "energy_cpi_index": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "crude_shock_usd_bbl",
+                "gasoline_shock_usd_gal",
+                "energy_cpi_shock_pct",
+                "energy_cpi_index"
+              ],
+              "additionalProperties": false
+            },
+            "central": {
+              "type": "object",
+              "properties": {
+                "crude_shock_usd_bbl": {
+                  "type": "number"
+                },
+                "gasoline_shock_usd_gal": {
+                  "type": "number"
+                },
+                "energy_cpi_shock_pct": {
+                  "type": "number",
+                  "description": "Month-average impact on the energy CPI, percent, on top of the baseline"
+                },
+                "energy_cpi_index": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "crude_shock_usd_bbl",
+                "gasoline_shock_usd_gal",
+                "energy_cpi_shock_pct",
+                "energy_cpi_index"
+              ],
+              "additionalProperties": false
+            },
+            "high": {
+              "type": "object",
+              "properties": {
+                "crude_shock_usd_bbl": {
+                  "type": "number"
+                },
+                "gasoline_shock_usd_gal": {
+                  "type": "number"
+                },
+                "energy_cpi_shock_pct": {
+                  "type": "number",
+                  "description": "Month-average impact on the energy CPI, percent, on top of the baseline"
+                },
+                "energy_cpi_index": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "crude_shock_usd_bbl",
+                "gasoline_shock_usd_gal",
+                "energy_cpi_shock_pct",
+                "energy_cpi_index"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "period",
+            "elevated_pump_days",
+            "days_in_month",
+            "baseline_cpi_energy",
+            "low",
+            "central",
+            "high"
+          ],
+          "additionalProperties": false
+        },
+        "next_month": {
+          "type": "object",
+          "properties": {
+            "period": {
+              "type": "string",
+              "description": "YYYY-MM"
+            },
+            "elevated_pump_days": {
+              "type": "number",
+              "description": "Days in this month with elevated pump prices after the pass-through lag"
+            },
+            "days_in_month": {
+              "type": "integer"
+            },
+            "baseline_cpi_energy": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "low": {
+              "type": "object",
+              "properties": {
+                "crude_shock_usd_bbl": {
+                  "type": "number"
+                },
+                "gasoline_shock_usd_gal": {
+                  "type": "number"
+                },
+                "energy_cpi_shock_pct": {
+                  "type": "number",
+                  "description": "Month-average impact on the energy CPI, percent, on top of the baseline"
+                },
+                "energy_cpi_index": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "crude_shock_usd_bbl",
+                "gasoline_shock_usd_gal",
+                "energy_cpi_shock_pct",
+                "energy_cpi_index"
+              ],
+              "additionalProperties": false
+            },
+            "central": {
+              "type": "object",
+              "properties": {
+                "crude_shock_usd_bbl": {
+                  "type": "number"
+                },
+                "gasoline_shock_usd_gal": {
+                  "type": "number"
+                },
+                "energy_cpi_shock_pct": {
+                  "type": "number",
+                  "description": "Month-average impact on the energy CPI, percent, on top of the baseline"
+                },
+                "energy_cpi_index": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "crude_shock_usd_bbl",
+                "gasoline_shock_usd_gal",
+                "energy_cpi_shock_pct",
+                "energy_cpi_index"
+              ],
+              "additionalProperties": false
+            },
+            "high": {
+              "type": "object",
+              "properties": {
+                "crude_shock_usd_bbl": {
+                  "type": "number"
+                },
+                "gasoline_shock_usd_gal": {
+                  "type": "number"
+                },
+                "energy_cpi_shock_pct": {
+                  "type": "number",
+                  "description": "Month-average impact on the energy CPI, percent, on top of the baseline"
+                },
+                "energy_cpi_index": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "crude_shock_usd_bbl",
+                "gasoline_shock_usd_gal",
+                "energy_cpi_shock_pct",
+                "energy_cpi_index"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "period",
+            "elevated_pump_days",
+            "days_in_month",
+            "baseline_cpi_energy",
+            "low",
+            "central",
+            "high"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "current_month",
+        "next_month"
+      ],
+      "additionalProperties": false
+    },
+    "label": {
+      "type": "string"
+    },
+    "baseline_status": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "as_of_utc",
+    "calibrated",
+    "disruption_fraction",
+    "days",
+    "start_utc",
+    "supply_at_risk_mbd",
+    "bypass_capacity_mbd",
+    "net_supply_loss_mbd",
+    "months",
+    "label",
+    "baseline_status"
+  ],
+  "additionalProperties": false,
+  "description": "GET /api/cpi/scenario?disruption=&days= (computed on request, not a file)"
+}

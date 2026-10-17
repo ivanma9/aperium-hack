@@ -1,0 +1,46 @@
+# Energy-CPI nowcast parameters (read by aperium/cpi_nowcast.py).
+# AIS cannot measure the CPI level; official prices anchor the level and AIS only drives the disruption shock.
+
+cache_ttl_hours: 12
+
+# BLS relative importance (% of all-items CPI). APPROXIMATE, recalled from the Dec 2024 BLS
+# relative-importance table (energy ~6.4, gasoline all types ~3.3); verify at
+# https://www.bls.gov/cpi/tables/relative-importance/ before relying on them.
+relative_importance:
+  energy: 6.4
+  gasoline: 3.3
+  source_note: "BLS CPI relative importance, Dec 2024 (approximate, from memory; verify)"
+gasoline_share_fallback: 0.5
+
+# Reference retail gasoline $/gal used only when EIA data is unavailable.
+reference_gasoline_usd_gal: 3.10
+
+hormuz:
+  min_observed_h: 12              # hours of AIS needed in the 24h window before a live disruption is reported (else no_data)
+  flow_mbd: 20.0                  # oil moving through the strait (crude + products), mb/d
+  baseline_laden_out_per_day: 20  # typical laden outbound tanker transits/day, uncalibrated; review said ~15-25
+  drop_threshold: 0.25            # a UTC day is "dropped" if its laden-out rate is < (1 - this) x baseline
+  trend_band: 0.15                # recovery_trend: 24h/3d rate ratio beyond 1 +/- this = improving/worsening
+  projection_min_days: 7          # live projection lasts max(days_since_drop, this) days
+
+offsets:
+  bypass_capacity_mbd: 2.5        # assumption: Saudi East-West and UAE Habshan-Fujairah pipelines (usable spare capacity)
+  strategic_release_mbd: 2.0      # coordinated strategic stock release
+  scale: 1.0                      # fraction of the strategic release that is actually achievable (1.0 = fully applied)
+
+pump_lag_days: 10                 # 1-2 week pump pass-through lag between a supply shock and elevated pump prices
+
+global_demand_mbd: 103.0
+# Crude price response, $/bbl per 1% of global supply lost. Short-run demand elasticity is very low,
+# so the range is wide.
+sensitivity_usd_bbl_per_pct:
+  low: 3.0
+  central: 6.0
+  high: 12.0
+
+gasoline_pass_through: 1.0        # $/gal change = crude $/bbl / 42 * pass_through (real pass-through is asymmetric)
+
+scenario:
+  label: "50% Hormuz closure for one month"
+  disruption_fraction: 0.5
+  days: 30                        # duration; start = now

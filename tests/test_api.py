@@ -11,11 +11,13 @@ from websockets.asyncio.server import serve
 
 from aperium import seed
 from aperium.app import create_app, collect
+from aperium.regions import REGIONS
 from aperium.tracking import bounding_boxes, normalize
 from test_tracking import message
 
 # Store.ports() returns geofences ordered by id.
-BOUNDING_BOXES = bounding_boxes(sorted(seed.PORTS, key=lambda p: p['id']))
+# Port geofences, then the tanker-monitor regions sharing the connection.
+BOUNDING_BOXES = bounding_boxes(sorted(seed.PORTS, key=lambda p: p['id'])) + [r['bbox'] for r in REGIONS.values()]
 
 
 def test_api_without_key_and_filtering(database_url):
@@ -44,6 +46,7 @@ def test_binary_stream_and_reconnect(database_url):
             subscription = json.loads(await ws.recv())
             assert subscription['APIKey'] == 'test-key'
             assert subscription['BoundingBoxes'] == BOUNDING_BOXES
+            assert 'ShipStaticData' in subscription['FilterMessageTypes']
             calls.append(subscription)
             await ws.send(json.dumps({'MessageType': 'SubscriptionConfirmation', 'Message': {}}))
             await ws.send(b'not-json')
@@ -143,7 +146,7 @@ def test_collector_subscription_and_binary_messages_without_network(monkeypatch,
                         await asyncio.sleep(.01)
                 await asyncio.wait_for(ready(), 5)
                 assert subscriptions[0]['BoundingBoxes'] == BOUNDING_BOXES
-                assert len(subscriptions[0]['BoundingBoxes']) == 4
+                assert len(subscriptions[0]['BoundingBoxes']) == 4 + len(REGIONS)
                 assert app.state.stream['positions_received'] == 2
                 assert app.state.stream['invalid_messages'] == 2
                 assert app.state.stream['discarded_messages'] == 2

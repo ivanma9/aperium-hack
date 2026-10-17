@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 from aperium.db import database_url as env_database_url, redacted
 
 load_dotenv()
+# Collector tests must not append to the real data/raw_*.jsonl.
+os.environ["RECORD_RAW"] = "0"
 
 
 def resolve_test_database_url():

@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sentinel.schema.json",
+  "title": "sentinel",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "as_of_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC ISO-8601, e.g. 2026-10-17T19:20:00Z"
+    },
+    "calibrated": {
+      "type": "boolean",
+      "const": false
+    },
+    "region": {
+      "type": "string",
+      "enum": [
+        "corpus_christi",
+        "hormuz"
+      ]
+    },
+    "image": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "null when no radar image is available for the region",
+      "properties": {
+        "acquired_utc": {
+          "type": "string",
+          "format": "date-time",
+          "description": "UTC ISO-8601, e.g. 2026-10-17T19:20:00Z"
+        },
+        "satellite": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "image_path": {
+          "type": "string",
+          "description": "Relative to outputs/latest/"
+        },
+        "bbox": {
+          "type": "array",
+          "description": "[[lat_sw, lon_sw], [lat_ne, lon_ne]]",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "ship_count": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "acquired_utc",
+        "satellite",
+        "image_path",
+        "bbox",
+        "ship_count"
+      ],
+      "additionalProperties": false
+    },
+    "next_pass_note": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "as_of_utc",
+    "calibrated",
+    "region",
+    "image",
+    "next_pass_note"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,63 @@
+# Regions and zones. Coordinates are approximate (hand-placed from charts), not official boundaries.
+# bbox: [[lat_sw, lon_sw], [lat_ne, lon_ne]] (AISstream order).
+# Zone polygons / lines: lists of [lat, lon] points (converted to GeoJSON [lon, lat] on output).
+# kind: terminal | anchorage | gate | boundary. Gates/boundaries are lines; `inbound_side` is a
+# [lat, lon] point on the inbound side (toward the port / into the Gulf).
+
+regions:
+  corpus_christi:
+    name: Corpus Christi, TX
+    role: "context: US crude export port"
+    # Widened from the brief's [[27.70,-97.35],[27.92,-96.95]] to include the inner-harbor
+    # oil docks (west) and the offshore anchorage (east).
+    bbox: [[27.70, -97.50], [27.95, -96.85]]
+    zones:
+      ingleside:
+        name: Ingleside terminals (Moda / Ingleside Energy Center)
+        kind: terminal
+        polygon: [[27.806, -97.228], [27.806, -97.190], [27.826, -97.190], [27.826, -97.228]]
+      harbor_island:
+        name: Harbor Island terminals
+        kind: terminal
+        polygon: [[27.835, -97.082], [27.835, -97.050], [27.862, -97.050], [27.862, -97.082]]
+      inner_harbor:
+        name: Inner Harbor oil docks
+        kind: terminal
+        polygon: [[27.805, -97.485], [27.805, -97.395], [27.830, -97.395], [27.830, -97.485]]
+      offshore_anchorage:
+        name: Corpus Christi offshore anchorage
+        kind: anchorage
+        polygon: [[27.74, -96.99], [27.74, -96.88], [27.87, -96.88], [27.87, -96.99]]
+      offshore_boundary:
+        name: Aransas Pass offshore boundary
+        kind: boundary
+        line: [[27.79, -97.015], [27.88, -97.015]]
+        inbound_side: [27.835, -97.06]
+
+  hormuz:
+    name: Strait of Hormuz
+    role: "signal: price-moving chokepoint"
+    # Widened south/west from the brief's [[25.8,55.5],[27.2,57.2]] so Fujairah and Jebel Ali are inside.
+    bbox: [[24.90, 54.90], [27.30, 57.20]]
+    zones:
+      hormuz_gate:
+        name: Strait of Hormuz gate (Musandam to Hormuz Island)
+        kind: gate
+        line: [[26.30, 56.42], [27.02, 56.48]]
+        inbound_side: [26.60, 56.10]   # west of the line = inside the Gulf
+      fujairah_anchorage:
+        name: Fujairah anchorage
+        kind: anchorage
+        polygon: [[25.05, 56.38], [25.05, 56.62], [25.30, 56.62], [25.30, 56.38]]
+      fujairah_terminal:
+        name: Fujairah oil terminals
+        kind: terminal
+        polygon: [[25.150, 56.345], [25.150, 56.375], [25.215, 56.375], [25.215, 56.345]]
+      shahid_rajaee:
+        name: Shahid Rajaee / Bandar Abbas
+        kind: terminal
+        polygon: [[27.06, 55.98], [27.06, 56.12], [27.14, 56.12], [27.14, 55.98]]
+      jebel_ali:
+        name: Jebel Ali
+        kind: terminal
+        polygon: [[24.97, 54.99], [24.97, 55.08], [25.04, 55.08], [25.04, 54.99]]

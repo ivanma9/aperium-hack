@@ -4,6 +4,7 @@ import logging
 import os
 import random
 import time
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager, suppress
 from typing import Optional
 
@@ -13,8 +14,11 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse, StreamingResponse
 from websockets.asyncio.client import connect
 
+from aperium import api as monitor_api
 from aperium.db import CHANNEL, Store, describe
 from aperium.db import database_url as env_database_url
+from aperium.recorder import raw_path
+from aperium.regions import REGIONS
 from aperium.tracking import POSITION_TYPES, bounding_boxes, normalize
 
 log = logging.getLogger("aperium")
@@ -22,6 +26,17 @@ STREAM_URL = "wss://stream.aisstream.io/v0/stream"
 # SSE comment sent when idle so proxies keep the connection open.
 HEARTBEAT_SECONDS = 15
 SUBSCRIBER_QUEUE = 1000
+# Tanker-monitor regions and vessel details ride on the same connection (AISstream allows one per key).
+STATIC_TYPES = ["ShipStaticData"]
+
+
+def record_raw(message):
+    """Append the raw message for aperium.run (tanker monitor), as aperium.recorder would."""
+    path = raw_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a") as f:
+        f.write(json.dumps({**message, "received_at": datetime.now(timezone.utc).isoformat()},
+                           separators=(",", ":")) + "\n")
 
 
 async def collect(app, key, url=STREAM_URL):
@@ -31,8 +46,9 @@ async def collect(app, key, url=STREAM_URL):
         state["status"] = "connecting"
         try:
             async with connect(url, compression="deflate", ping_interval=20, ping_timeout=20) as ws:
-                await ws.send(json.dumps({"APIKey": key, "BoundingBoxes": bounding_boxes(app.state.ports),
-                                          "FilterMessageTypes": POSITION_TYPES}))
+                boxes = bounding_boxes(app.state.ports) + [r["bbox"] for r in REGIONS.values()]
+                await ws.send(json.dumps({"APIKey": key, "BoundingBoxes": boxes,
+                                          "FilterMessageTypes": POSITION_TYPES + STATIC_TYPES}))
                 state["status"] = "awaiting_subscription"
                 async for raw in ws:
                     try:
@@ -49,6 +65,10 @@ async def collect(app, key, url=STREAM_URL):
                         now = time.time()
                         state["last_message_at"] = now
                         state["messages_received"] += 1
+                        if getattr(app.state, "record_raw", False):
+                            record_raw(message)
+                        if message.get("MessageType") in STATIC_TYPES:
+                            continue
                         position = normalize(message, now)
                     except (ValueError, TypeError, AttributeError):
                         state["invalid_messages"] += 1
@@ -105,7 +125,7 @@ def sse(event, data):
     return f"event: {event}\ndata: {json.dumps(data, separators=(',', ':'))}\n\n"
 
 
-def create_app(database_url=None, api_key=None, stream_url=STREAM_URL):
+def create_app(database_url=None, api_key=None, stream_url=STREAM_URL, record=None):
     @asynccontextmanager
     async def lifespan(app):
         load_dotenv()
@@ -116,6 +136,7 @@ def create_app(database_url=None, api_key=None, stream_url=STREAM_URL):
         # Geofences are read once at startup; restart after editing the `ports` table.
         app.state.ports = await app.state.store.ports()
         app.state.subscribers = set()
+        app.state.record_raw = record if record is not None else os.getenv("RECORD_RAW", "1") != "0"
         app.state.listening = False
         app.state.stream = dict(status="missing_api_key", last_error=None, last_message_at=None,
                                 last_position_at=None, messages_received=0, positions_received=0,
@@ -136,6 +157,10 @@ def create_app(database_url=None, api_key=None, stream_url=STREAM_URL):
                   description="Observed vessel activity in the port geofences stored in Postgres (`ports` table), "
                               "and the monitored geographies (`geographies` table). Approximate discovery boxes, "
                               "not official anchorage boundaries or congestion scores. Times are Unix seconds in UTC.")
+
+    # Tanker monitor read-only routes (/api/regions/..., /api/cpi_nowcast, /api/cpi/scenario, /api/files/...).
+    app.include_router(monitor_api.router)
+    app.mount("/api/files", monitor_api.files(), name="monitor-files")
 
     def port_ids():
         return {p["id"] for p in app.state.ports}

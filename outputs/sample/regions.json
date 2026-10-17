@@ -1,0 +1,369 @@
+{
+  "schema_version": "2.0.0",
+  "as_of_utc": "2026-10-17T21:00:00Z",
+  "calibrated": false,
+  "regions": [
+    {
+      "id": "corpus_christi",
+      "name": "Corpus Christi, TX",
+      "role": "context: US crude export port",
+      "bbox": [
+        [
+          27.7,
+          -97.5
+        ],
+        [
+          27.95,
+          -96.85
+        ]
+      ],
+      "zones": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    -97.228,
+                    27.806
+                  ],
+                  [
+                    -97.19,
+                    27.806
+                  ],
+                  [
+                    -97.19,
+                    27.826
+                  ],
+                  [
+                    -97.228,
+                    27.826
+                  ],
+                  [
+                    -97.228,
+                    27.806
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "id": "ingleside",
+              "name": "Ingleside terminals (Moda / Ingleside Energy Center)",
+              "kind": "terminal"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    -97.082,
+                    27.835
+                  ],
+                  [
+                    -97.05,
+                    27.835
+                  ],
+                  [
+                    -97.05,
+                    27.862
+                  ],
+                  [
+                    -97.082,
+                    27.862
+                  ],
+                  [
+                    -97.082,
+                    27.835
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "id": "harbor_island",
+              "name": "Harbor Island terminals",
+              "kind": "terminal"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    -97.485,
+                    27.805
+                  ],
+                  [
+                    -97.395,
+                    27.805
+                  ],
+                  [
+                    -97.395,
+                    27.83
+                  ],
+                  [
+                    -97.485,
+                    27.83
+                  ],
+                  [
+                    -97.485,
+                    27.805
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "id": "inner_harbor",
+              "name": "Inner Harbor oil docks",
+              "kind": "terminal"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    -96.99,
+                    27.74
+                  ],
+                  [
+                    -96.88,
+                    27.74
+                  ],
+                  [
+                    -96.88,
+                    27.87
+                  ],
+                  [
+                    -96.99,
+                    27.87
+                  ],
+                  [
+                    -96.99,
+                    27.74
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "id": "offshore_anchorage",
+              "name": "Corpus Christi offshore anchorage",
+              "kind": "anchorage"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  -97.015,
+                  27.79
+                ],
+                [
+                  -97.015,
+                  27.88
+                ]
+              ]
+            },
+            "properties": {
+              "id": "offshore_boundary",
+              "name": "Aransas Pass offshore boundary",
+              "kind": "boundary"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "hormuz",
+      "name": "Strait of Hormuz",
+      "role": "signal: price-moving chokepoint",
+      "bbox": [
+        [
+          24.9,
+          54.9
+        ],
+        [
+          27.3,
+          57.2
+        ]
+      ],
+      "zones": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  56.42,
+                  26.3
+                ],
+                [
+                  56.48,
+                  27.02
+                ]
+              ]
+            },
+            "properties": {
+              "id": "hormuz_gate",
+              "name": "Strait of Hormuz gate (Musandam to Hormuz Island)",
+              "kind": "gate"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    56.38,
+                    25.05
+                  ],
+                  [
+                    56.62,
+                    25.05
+                  ],
+                  [
+                    56.62,
+                    25.3
+                  ],
+                  [
+                    56.38,
+                    25.3
+                  ],
+                  [
+                    56.38,
+                    25.05
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "id": "fujairah_anchorage",
+              "name": "Fujairah anchorage",
+              "kind": "anchorage"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    56.345,
+                    25.15
+                  ],
+                  [
+                    56.375,
+                    25.15
+                  ],
+                  [
+                    56.375,
+                    25.215
+                  ],
+                  [
+                    56.345,
+                    25.215
+                  ],
+                  [
+                    56.345,
+                    25.15
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "id": "fujairah_terminal",
+              "name": "Fujairah oil terminals",
+              "kind": "terminal"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    55.98,
+                    27.06
+                  ],
+                  [
+                    56.12,
+                    27.06
+                  ],
+                  [
+                    56.12,
+                    27.14
+                  ],
+                  [
+                    55.98,
+                    27.14
+                  ],
+                  [
+                    55.98,
+                    27.06
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "id": "shahid_rajaee",
+              "name": "Shahid Rajaee / Bandar Abbas",
+              "kind": "terminal"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    54.99,
+                    24.97
+                  ],
+                  [
+                    55.08,
+                    24.97
+                  ],
+                  [
+                    55.08,
+                    25.04
+                  ],
+                  [
+                    54.99,
+                    25.04
+                  ],
+                  [
+                    54.99,
+                    24.97
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "id": "jebel_ali",
+              "name": "Jebel Ali",
+              "kind": "terminal"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

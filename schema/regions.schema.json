@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "regions.schema.json",
+  "title": "regions",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "as_of_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC ISO-8601, e.g. 2026-10-17T19:20:00Z"
+    },
+    "calibrated": {
+      "type": "boolean",
+      "const": false
+    },
+    "regions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "corpus_christi",
+              "hormuz"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "bbox": {
+            "type": "array",
+            "description": "[[lat_sw, lon_sw], [lat_ne, lon_ne]]",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "zones": {
+            "type": "object",
+            "description": "GeoJSON FeatureCollection. Feature properties: id, name, kind (terminal|anchorage|gate|boundary). Gates/boundaries are LineStrings, others Polygons. Coordinates are GeoJSON [lon, lat].",
+            "properties": {
+              "type": {
+                "const": "FeatureCollection"
+              },
+              "features": {
+                "type": "array"
+              }
+            },
+            "required": [
+              "type",
+              "features"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "role",
+          "bbox",
+          "zones"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "as_of_utc",
+    "calibrated",
+    "regions"
+  ],
+  "additionalProperties": false
+}

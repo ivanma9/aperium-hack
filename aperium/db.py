@@ -8,8 +8,10 @@ Every insert or update of `latest` fires `pg_notify('vessel_positions', <row jso
 The app LISTENs on that channel and fans events out to SSE clients (/api/stream).
 """
 import json
+import os
 from typing import Optional
 
+from psycopg.conninfo import conninfo_to_dict, make_conninfo
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 from psycopg_pool import AsyncConnectionPool
@@ -18,6 +20,33 @@ from aperium import seed
 from aperium.tracking import matching_ports
 
 CHANNEL = "vessel_positions"
+
+
+def database_url(dbname: Optional[str] = None) -> str:
+    """Connection string from the environment (.env): DATABASE_URL if set, else the
+    compose.yaml settings (POSTGRES_PASSWORD required; POSTGRES_USER, POSTGRES_DB and
+    APERIUM_DB_PORT have defaults). `dbname` swaps the database (tests use aperium_test).
+    No password is ever defaulted."""
+    url = os.getenv("DATABASE_URL", "").strip()
+    if url:
+        return make_conninfo(url, dbname=dbname) if dbname else url
+    password = os.getenv("POSTGRES_PASSWORD", "").strip()
+    if not password:
+        raise RuntimeError("Set POSTGRES_PASSWORD (or DATABASE_URL) in .env; ./dev.sh generates one.")
+    return make_conninfo(
+        host=os.getenv("POSTGRES_HOST", "127.0.0.1"),
+        port=os.getenv("APERIUM_DB_PORT", "5434"),
+        user=os.getenv("POSTGRES_USER", "aperium"),
+        password=password,
+        dbname=dbname or os.getenv("POSTGRES_DB", "aperium"),
+    )
+
+
+def redacted(dsn: str) -> str:
+    """DSN for log/error messages, without the password."""
+    parts = conninfo_to_dict(dsn)
+    parts.pop("password", None)
+    return make_conninfo(**parts)
 
 SCHEMA = f"""
 CREATE TABLE IF NOT EXISTS geographies (

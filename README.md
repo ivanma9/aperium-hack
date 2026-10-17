@@ -55,8 +55,17 @@ uv run uvicorn aperium.app:app --host 127.0.0.1 --port 8000
 ```
 
 On startup the collector creates its tables if needed and inserts the initial geographies and ports
-from `aperium/seed.py` (insert-if-missing, so edits made in the database are kept). `DATABASE_URL`
-in `.env` points at the database (default `postgresql://aperium:aperium@127.0.0.1:5434/aperium`).
+from `aperium/seed.py` (insert-if-missing, so edits made in the database are kept).
+
+Credentials live only in `.env` (gitignored). Set `POSTGRES_PASSWORD` to a random value before the
+first `docker compose up` (`./dev.sh` generates one with `openssl rand -hex 24`). compose.yaml
+refuses to start without it. The collector connects to `127.0.0.1:${APERIUM_DB_PORT:-5434}` as
+`POSTGRES_USER` (default `aperium`) with that password. Set `DATABASE_URL` instead to point at
+another Postgres. No password has a default anywhere in the repo.
+
+To rotate the password, change `POSTGRES_PASSWORD` in `.env` and rerun `./dev.sh`. It recreates the
+container and re-applies the password to the database role on every start, because Postgres only
+reads `POSTGRES_PASSWORD` when the volume is first created.
 
 If uv is unavailable, use a virtual environment:
 
@@ -138,8 +147,8 @@ cd web && bun run test
 
 Tests use synthetic AIS messages and a local WebSocket provider; no API key needed. The storage,
 API, NOTIFY and SSE tests run against `TEST_DATABASE_URL` (default
-`postgresql://aperium:aperium@127.0.0.1:5434/aperium_test`), which they reset, and are skipped if
-it's unreachable.
+the `aperium_test` database with the `.env` credentials), which they reset, and are skipped if
+it's unreachable or no password is configured.
 Provider documentation: https://aisstream.io/documentation/
 
 ## Compare with other observations

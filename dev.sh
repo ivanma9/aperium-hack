@@ -21,20 +21,38 @@ for p in "$BACKEND_PORT" "$FRONTEND_PORT"; do
   port_in_use "$p" && die "Port $p is already in use (lsof -iTCP:$p -sTCP:LISTEN)."
 done
 
-# ── Postgres (compose.yaml) ─────────────────────────────────
+# ── .env (gitignored; holds every secret) ───────────────────
 cd "$ROOT"
-command -v docker >/dev/null 2>&1 || die "Need Docker for Postgres (compose.yaml). Install Docker Desktop."
-docker info >/dev/null 2>&1 || die "Docker isn't running. Start Docker Desktop (open -a Docker) and retry."
-say "Starting Postgres…"
-docker compose up -d --wait db >/dev/null || die "Postgres failed to start: docker compose logs db"
-
-# ── Backend setup ───────────────────────────────────────────
 if [[ ! -f .env ]]; then
   cp .env.example .env
   warn "Created .env from .env.example. Set AISSTREAM_API_KEY in it to receive live AIS data."
 elif ! grep -Eq "^AISSTREAM_API_KEY=['\"]?[^'\"[:space:]]+" .env; then
   warn "AISSTREAM_API_KEY is empty in .env: the API will start but report missing_api_key."
 fi
+if ! grep -Eq '^POSTGRES_PASSWORD=.+' .env; then
+  # Hex only, so it's safe in a connection string without escaping.
+  password="$(openssl rand -hex 24)"
+  if grep -q '^POSTGRES_PASSWORD=' .env; then
+    sed -i.bak "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$password/" .env && rm -f .env.bak
+  else
+    printf '\nPOSTGRES_PASSWORD=%s\n' "$password" >> .env
+  fi
+  unset password
+  say "Generated a Postgres password in .env."
+fi
+
+# ── Postgres (compose.yaml) ─────────────────────────────────
+command -v docker >/dev/null 2>&1 || die "Need Docker for Postgres (compose.yaml). Install Docker Desktop."
+docker info >/dev/null 2>&1 || die "Docker isn't running. Start Docker Desktop (open -a Docker) and retry."
+say "Starting Postgres…"
+docker compose up -d --wait db >/dev/null || die "Postgres failed to start: docker compose logs db"
+# POSTGRES_PASSWORD only applies when the volume is first created, so re-apply it on every
+# start: a rotated .env password (or a volume created with an old one) stays in sync.
+# Uses the container's local socket; the password comes from the container's env, not argv.
+docker compose exec -T db sh -c 'echo "ALTER ROLE \"$POSTGRES_USER\" PASSWORD :'\''pw'\'';" | psql -q -v ON_ERROR_STOP=1 -v pw="$POSTGRES_PASSWORD" -U "$POSTGRES_USER" -d "$POSTGRES_DB"' >/dev/null \
+  || die "Couldn't sync the Postgres password: docker compose logs db"
+
+# ── Backend setup ───────────────────────────────────────────
 
 if command -v uv >/dev/null 2>&1; then
   say "Syncing backend deps with uv…"
@@ -85,7 +103,7 @@ trap 'cleanup; exit 143' TERM
 prefix() { local tag="$1" color="$2"; while IFS= read -r line; do printf '%s%-8s%s %s\n' "$color" "$tag" "$reset" "$line"; done; }
 
 set -m  # give each background job its own process group so cleanup reaches children
-(cd "$ROOT" && exec "${BACKEND_CMD[@]}" aperium.app:app --host 127.0.0.1 --port "$BACKEND_PORT" --reload --reload-dir aperium 2>&1) \
+(cd "$ROOT" && exec "${BACKEND_CMD[@]}" aperium.app:app --host 127.0.0.1 --port "$BACKEND_PORT" --reload --reload-dir aperium --timeout-graceful-shutdown 3 2>&1) \
   > >(prefix backend "$green") &
 pids+=($!)
 (cd "$ROOT/web" && APERIUM_API_URL="http://127.0.0.1:$BACKEND_PORT" exec bun run dev -p "$FRONTEND_PORT" 2>&1) \

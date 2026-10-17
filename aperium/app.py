@@ -14,11 +14,11 @@ from fastapi.responses import RedirectResponse, StreamingResponse
 from websockets.asyncio.client import connect
 
 from aperium.db import CHANNEL, Store, describe
+from aperium.db import database_url as env_database_url
 from aperium.tracking import POSITION_TYPES, bounding_boxes, normalize
 
 log = logging.getLogger("aperium")
 STREAM_URL = "wss://stream.aisstream.io/v0/stream"
-DEFAULT_DATABASE_URL = "postgresql://aperium:aperium@127.0.0.1:5434/aperium"
 # SSE comment sent when idle so proxies keep the connection open.
 HEARTBEAT_SECONDS = 15
 SUBSCRIBER_QUEUE = 1000
@@ -110,7 +110,7 @@ def create_app(database_url=None, api_key=None, stream_url=STREAM_URL):
     async def lifespan(app):
         load_dotenv()
         key = api_key if api_key is not None else os.getenv("AISSTREAM_API_KEY", "")
-        dsn = database_url or os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
+        dsn = database_url or env_database_url()
         app.state.stale_seconds = max(1, int(os.getenv("STALE_SECONDS", "900")))
         app.state.store = await Store.open(dsn)
         # Geofences are read once at startup; restart after editing the `ports` table.

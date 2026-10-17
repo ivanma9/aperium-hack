@@ -1,6 +1,36 @@
-# Aperium
+<h1 align="center">Tidemark</h1>
+<h3 align="center">for Aperium hackathon</h3>
 
-Energy-flow intelligence around the Strait of Hormuz. Two parts:
+<p align="center">
+  <strong>Energy-flow intelligence around the Strait of Hormuz.</strong><br>
+  A live AIS collector, a tanker monitor with an uncalibrated CPI nowcast, and <strong>Tidemark</strong>, a HUD that turns chokepoint oil flow into a one-month US energy CPI outlook.
+</p>
+
+<p align="center">
+  <a href="https://github.com/ivanma9/aperium-hack/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/ivanma9/aperium-hack/actions/workflows/ci.yml/badge.svg"></a>
+  <img alt="Next.js 16" src="https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs&logoColor=white">
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black">
+  <img alt="TypeScript 5" src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white">
+  <img alt="Bun 1.4+" src="https://img.shields.io/badge/Bun-%E2%89%A51.4-000000?style=flat-square&logo=bun&logoColor=white">
+  <img alt="MapLibre GL JS 6" src="https://img.shields.io/badge/MapLibre_GL-6-396CB2?style=flat-square&logo=maplibre&logoColor=white">
+  <img alt="Python 3.9+" src="https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat-square&logo=python&logoColor=white">
+  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-0.115%2B-009688?style=flat-square&logo=fastapi&logoColor=white">
+  <img alt="PostgreSQL 17" src="https://img.shields.io/badge/PostgreSQL-17-4169E1?style=flat-square&logo=postgresql&logoColor=white">
+  <img alt="Docker Compose" src="https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white">
+</p>
+
+<!-- Screenshot: save a 1440x900 capture of the HUD to docs/screenshot.png, then uncomment.
+<p align="center">
+  <img src="docs/screenshot.png" width="900" alt="Tidemark HUD on the OpenFreeMap map of the Strait of Hormuz: port geofences, shipping lanes, live AIS ships, the oil-flow panel and the US energy CPI outlook card."><br>
+  <sub>Flow and CPI figures on the HUD come from the simulated feed (see <a href="#what-is-live-and-what-is-simulated">what is live</a>).</sub>
+</p>
+-->
+
+**Contents:** [Overview](#overview) · [Run everything](#run-everything) · [Live vs simulated](#what-is-live-and-what-is-simulated) · [Collector only](#run-the-collector-only) · [Endpoints](#endpoints) · [MCP server](#mcp-server) · [Tests](#tests) · [Tanker monitor](#tanker-monitor-and-cpi-nowcast-backend)
+
+## Overview
+
+Three parts:
 
 | Part | Path | Stack | What it does |
 | --- | --- | --- | --- |
@@ -11,14 +41,25 @@ Energy-flow intelligence around the Strait of Hormuz. Two parts:
 ## Run everything
 
 ```sh
-./dev.sh   # Postgres (Docker) on :5434, collector on :8000, HUD on :3000; Ctrl-C stops collector + HUD
+./dev.sh   # Postgres :5434 · collector + MCP :8000 · tanker monitor · HUD :3000
 ```
+
+| Process | What it does |
+| --- | --- |
+| Postgres (Docker) | Geographies, ports, AIS positions; left running between sessions |
+| Collector (`aperium.app`) | AISstream connection, REST + SSE API, MCP server at `/mcp`; records raw AIS to `data/raw_YYYYMMDD.jsonl` |
+| Tanker monitor (`aperium.run`) | Tails that raw file and writes `outputs/latest/` every 10 s (regions, flow metrics, events), plus the CPI nowcast every 30 min. Skip it with `MONITOR=0 ./dev.sh` |
+| HUD (`web/`) | Next.js dev server |
+
+Ctrl-C stops everything except Postgres.
 
 Requires Docker (Desktop running), Python 3.9+ and Bun ≥ 1.4. `dev.sh` starts Postgres with
 `docker compose up -d --wait db` and leaves it running between sessions; stop it with
 `docker compose stop db`. On first run it also creates `.env` from `.env.example`, installs the
 collector (with uv if available, otherwise into `.venv`) and runs `bun install` in `web/`.
-Set `AISSTREAM_API_KEY` in `.env` for live positions. Change ports with `BACKEND_PORT` /
+Set `AISSTREAM_API_KEY` in `.env` for live positions, and optionally `EIA_API_KEY` (free, eia.gov) so
+the CPI nowcast includes EIA weekly retail gasoline; without it the nowcast still runs and its
+`sources` list marks EIA as `missing_key`. Change ports with `BACKEND_PORT` /
 `FRONTEND_PORT`, and the host's Postgres port with `APERIUM_DB_PORT` (default 5434, chosen to avoid
 the 5432/5433 a local or other project's Postgres often uses; update `DATABASE_URL` to match).
 
@@ -138,6 +179,70 @@ restarts. There is currently no automatic retention limit: monitor disk use duri
 collection. The collector writes each position as one small transaction; this is intended for this
 small regional subscription, not a worldwide high-throughput feed.
 
+## MCP server
+
+The collector's and tanker monitor's data as MCP tools (`aperium/mcp_server.py`, MCP Python SDK 2,
+Python 3.10+). Two transports, same tools:
+
+| Transport | How | Notes |
+| --- | --- | --- |
+| **Streamable HTTP** | `http://127.0.0.1:8000/mcp` | Mounted on the collector, so `./dev.sh` serves it. Stateless, JSON responses. |
+| **stdio** | `.venv/bin/python -m aperium.mcp_server` | For harnesses that launch a command. Needs the collector running. |
+
+Every tool wraps one collector REST endpoint (`APERIUM_API_URL`, default `http://127.0.0.1:8000`), so
+MCP clients get exactly what the HUD and REST clients get:
+
+| Tool | Endpoint | Data |
+| --- | --- | --- |
+| `list_geographies` | `/api/geographies` | Monitored chokepoints and their port geofences (Postgres) |
+| `get_collector_status` | `/api/status` | AISstream connection, counters, freshness |
+| `list_vessels(port?, include_stale?)` | `/api/vessels` | Live AIS ships inside the geofences |
+| `get_port_metrics(port?)` | `/api/metrics` | Active / slow / anchored / stale per port |
+| `get_vessel_history(mmsi, limit?)` | `/api/vessels/{mmsi}/history` | Stored observations for one ship |
+| `list_regions` | `/api/regions` | Tanker-monitor regions (tanker monitor) |
+| `get_flow_estimate(region?)` | `/api/regions/{region}/metrics` | Tankers present, gate crossings, laden departures, est. barrels (tanker monitor) |
+| `list_region_tankers(region?)` | `/api/regions/{region}/vessels` | Tracked tankers (tanker monitor) |
+| `get_region_events(region?, since?, limit?)` | `/api/regions/{region}/events` | Tanker events, newest first (tanker monitor) |
+| `get_energy_cpi_outlook` | `/api/cpi_nowcast` | Uncalibrated US energy-CPI nowcast (tanker monitor) |
+| `run_scenario(disruption, days)` | `/api/cpi/scenario` | What-if Hormuz disruption on the cached CPI baseline |
+
+Tools marked "tanker monitor" read the files `aperium.run` writes; `./dev.sh` starts it. Until its
+first write (about 10 s), or with `MONITOR=0`, they return an error naming the command that produces
+the data, rather than failing silently. Every tool returns a single JSON object (lists are wrapped
+with a `count`), so empty results still read clearly. CPI figures are uncalibrated
+(`calibrated: false`), and the server's instructions tell clients to say so.
+
+**Connect a harness** (start `./dev.sh` first):
+
+```sh
+# Claude Code
+claude mcp add --transport http aperium http://127.0.0.1:8000/mcp
+
+# MCP Inspector (browser UI for trying tools): choose "Streamable HTTP", URL http://127.0.0.1:8000/mcp
+npx @modelcontextprotocol/inspector
+```
+
+For clients configured with JSON (Claude Desktop, Cursor and similar), use stdio with absolute paths:
+
+```json
+{
+  "mcpServers": {
+    "aperium": {
+      "command": "/absolute/path/to/aperium-hack/.venv/bin/python",
+      "args": ["-m", "aperium.mcp_server"],
+      "env": { "APERIUM_API_URL": "http://127.0.0.1:8000" }
+    }
+  }
+}
+```
+
+Clients that accept a URL (Cursor's `"url"` field, for example) can use `http://127.0.0.1:8000/mcp`
+directly.
+
+**Security:** like the rest of the API it's local and unauthenticated. The SDK's DNS-rebinding
+protection only accepts `localhost`/`127.0.0.1` Host headers, so it can't be reached through another
+hostname. Don't expose it beyond loopback without adding auth (the handoff specifies OAuth).
+
 ## Tests
 
 ```sh
@@ -155,6 +260,10 @@ API, NOTIFY and SSE tests run against `TEST_DATABASE_URL` (default
 the `aperium_test` database with the `.env` credentials), which they reset, and are skipped if
 it's unreachable or no password is configured.
 Provider documentation: https://aisstream.io/documentation/
+
+CI (`.github/workflows/ci.yml`, the badge above) runs both suites on every push to `main` and every
+pull request. The backend job starts Postgres from `compose.yaml` with a password generated for that
+run, then runs `uv sync --locked` and `uv run pytest`. The web job runs typecheck, lint and vitest.
 
 ## Compare with other observations
 

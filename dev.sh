@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
-# Run Postgres (Docker), the Aperium AIS collector (FastAPI) and the Tidemark frontend
-# (Next.js on Bun) together. Ctrl-C stops the collector and frontend; Postgres keeps
-# running in Docker (stop it with `docker compose stop db`). Installs missing deps on first run.
+# Run Postgres (Docker), the Aperium AIS collector (FastAPI, also serves /mcp), the tanker
+# monitor (aperium.run) and the Tidemark frontend (Next.js on Bun) together. Ctrl-C stops
+# everything except Postgres, which keeps running in Docker (`docker compose stop db`).
+# Installs missing deps on first run.
 #
 #   ./dev.sh                         # backend :8000, frontend :3000
 #   BACKEND_PORT=8001 FRONTEND_PORT=3001 ./dev.sh
+#   MONITOR=0 ./dev.sh               # skip the tanker monitor
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_PORT="${BACKEND_PORT:-8000}"
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
+MONITOR="${MONITOR:-1}"
 
-blue=$'\033[34m'; green=$'\033[32m'; yellow=$'\033[33m'; red=$'\033[31m'; reset=$'\033[0m'
+blue=$'\033[34m'; green=$'\033[32m'; magenta=$'\033[35m'; yellow=$'\033[33m'; red=$'\033[31m'; reset=$'\033[0m'
 say()  { printf '%s[dev]%s %s\n' "$blue" "$reset" "$*"; }
 warn() { printf '%s[dev]%s %s\n' "$yellow" "$reset" "$*" >&2; }
 die()  { printf '%s[dev]%s %s\n' "$red" "$reset" "$*" >&2; exit 1; }
@@ -58,6 +61,7 @@ if command -v uv >/dev/null 2>&1; then
   say "Syncing backend deps with uv…"
   uv sync --quiet
   BACKEND_CMD=(uv run uvicorn)
+  PY_CMD=(uv run python)
 else
   PY="${PYTHON:-python3}"
   command -v "$PY" >/dev/null 2>&1 || die "Need uv or python3 (3.9+) for the backend."
@@ -74,6 +78,7 @@ else
     touch "$stamp"
   fi
   BACKEND_CMD=(.venv/bin/python -m uvicorn)
+  PY_CMD=(.venv/bin/python)
 fi
 
 # ── Frontend setup ──────────────────────────────────────────
@@ -103,17 +108,27 @@ trap 'cleanup; exit 143' TERM
 prefix() { local tag="$1" color="$2"; while IFS= read -r line; do printf '%s%-8s%s %s\n' "$color" "$tag" "$reset" "$line"; done; }
 
 set -m  # give each background job its own process group so cleanup reaches children
-(cd "$ROOT" && exec "${BACKEND_CMD[@]}" aperium.app:app --host 127.0.0.1 --port "$BACKEND_PORT" --reload --reload-dir aperium --timeout-graceful-shutdown 3 2>&1) \
+(cd "$ROOT" && APERIUM_API_URL="http://127.0.0.1:$BACKEND_PORT" exec "${BACKEND_CMD[@]}" aperium.app:app --host 127.0.0.1 --port "$BACKEND_PORT" --reload --reload-dir aperium --timeout-graceful-shutdown 3 2>&1) \
   > >(prefix backend "$green") &
 pids+=($!)
 (cd "$ROOT/web" && APERIUM_API_URL="http://127.0.0.1:$BACKEND_PORT" exec bun run dev -p "$FRONTEND_PORT" 2>&1) \
   > >(prefix web "$blue") &
 pids+=($!)
+if [[ "$MONITOR" != "0" ]]; then
+  # Tanker monitor: tails the raw AIS file the collector records (data/raw_YYYYMMDD.jsonl) and
+  # writes outputs/latest/ every 10 s (regions, metrics, events; CPI nowcast every 30 min).
+  # The collector's /api/regions, /api/cpi_nowcast and the MCP flow/CPI tools serve those files.
+  (cd "$ROOT" && PYTHONUNBUFFERED=1 exec "${PY_CMD[@]}" -m aperium.run 2>&1) \
+    > >(prefix monitor "$magenta") &
+  pids+=($!)
+fi
 set +m
 
 say "Backend   http://127.0.0.1:$BACKEND_PORT/docs"
 say "Frontend  http://localhost:$FRONTEND_PORT"
-say "Ctrl-C to stop both."
+say "MCP       http://127.0.0.1:$BACKEND_PORT/mcp"
+[[ "$MONITOR" != "0" ]] && say "Monitor   writing outputs/latest/ (MONITOR=0 to skip)"
+say "Ctrl-C to stop everything (Postgres keeps running)."
 
 # Exit (and stop the other) as soon as either service dies.
 while true; do
